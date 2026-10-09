@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}Complaint #{{ complaint.id }} Detail{% endblock %}
+{% block avatar_bg %}linear-gradient(135deg,#4361ee,#7209b7){% endblock %}
+{% block avatar_icon %}fa-user-graduate{% endblock %}
+{% block user_role_label %}🎓 {{ current_user.branch }} – Sem {{ current_user.semester }}{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section"><span class="nav-section-label">Main</span></div>
+<a href="{{ url_for('student.dashboard') }}"    class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
+<a href="{{ url_for('student.submit') }}"       class="nav-item"><i class="fas fa-plus-circle"></i> Submit Complaint</a>
+<a href="{{ url_for('student.my_complaints') }}"class="nav-item active"><i class="fas fa-list-alt"></i> My Complaints</a>
+<a href="{{ url_for('student.notifications') }}"class="nav-item">
+  <i class="fas fa-bell"></i> Notifications
+  {% if notif_count %}<span class="nav-badge">{{ notif_count }}</span>{% endif %}
+</a>
+{% endblock %}
+
+{% block page_title %}Complaint Ticket #{{ complaint.id }}{% endblock %}
+{% block page_subtitle %}Full timeline tracking, staff resolution updates, and student feedback.{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px;">
+  <!-- Header Banner -->
+  <div class="complaint-detail-header">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+      <div>
+        <h2>{{ complaint.title }}</h2>
+        <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; align-items:center;">
+          {% set c = complaint %}
+          {% include 'partials/status_badge.html' %}
+          {% include 'partials/priority_badge.html' %}
+          {% include 'partials/category_pill.html' %}
+        </div>
+      </div>
+      <div style="font-size:12px; opacity:0.9; text-align:right;">
+        <div>Submitted: <strong>{{ complaint.created_at.strftime('%d %b %Y, %I:%M %p') }}</strong></div>
+        <div style="margin-top:4px;">Last Activity: <strong>{{ complaint.updated_at.strftime('%d %b %Y, %I:%M %p') }}</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <!-- Complaint Info -->
+    <div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px;"><i class="fas fa-file-alt" style="color:var(--primary);"></i> Complaint Description</div>
+        <div style="font-size:14px; line-height:1.7; color:var(--text-dark); background:#f8fafc; padding:16px; border-radius:10px; border:1px solid var(--border);">
+          {{ complaint.description }}
+        </div>
+
+        <div style="margin-top:18px;">
+          <h4 style="font-size:13px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px;">Handling Department</h4>
+          <div style="display:flex; align-items:center; gap:10px; padding:12px; background:#f1f5f9; border-radius:8px;">
+            <div style="width:36px; height:36px; border-radius:8px; background:var(--primary); color:white; display:flex; align-items:center; justify-content:center;">
+              <i class="fas fa-user-shield"></i>
+            </div>
+            <div>
+              <div style="font-weight:600; font-size:13px;">
+                {% if complaint.assignee %}
+                  {{ complaint.assignee.name }}
+                {% else %}
+                  Pending Central Allocation
+                {% endif %}
+              </div>
+              <div style="font-size:11px; color:var(--text-muted);">
+                {% if complaint.assignee %}
+                  {{ complaint.assignee.designation or 'Faculty / Staff' }} ({{ complaint.assignee.department }})
+                {% else %}
+                  Under administrator review
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feedback Card -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px;"><i class="fas fa-star" style="color:var(--warning);"></i> Resolution Feedback</div>
+        {% if complaint.feedback %}
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 18px;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+              <div style="color: #ffd166; font-size: 18px;">
+                {% for i in range(complaint.feedback.rating) %}★{% endfor %}
+                {% for i in range(5 - complaint.feedback.rating) %}<span style="color:#cbd5e1;">★</span>{% endfor %}
+              </div>
+              <span style="font-size:12px; color:var(--text-muted);">Rated on {{ complaint.feedback.created_at.strftime('%d %b %Y') }}</span>
+            </div>
+            <p style="font-size:13px; color:var(--text-dark); font-style:italic;">"{{ complaint.feedback.comment or 'No specific comment provided.' }}"</p>
+          </div>
+        {% elif complaint.status in ('resolved', 'closed') %}
+          <div style="background: #fffbeb; border: 1px solid #fef3c7; border-radius: 12px; padding: 18px;">
+            <p style="font-size:13px; color:#92400e; margin-bottom:12px;">This issue has been marked resolved! How satisfied are you with the outcome?</p>
+            <form method="POST" action="{{ url_for('student.submit_feedback', cid=complaint.id) }}">
+              <div class="form-group-d">
+                <label>Rating (1 to 5 Stars) *</label>
+                <select name="rating" required style="max-width:200px;">
+                  <option value="5">★★★★★ (5 - Excellent)</option>
+                  <option value="4">★★★★☆ (4 - Good)</option>
+                  <option value="3">★★★☆☆ (3 - Average)</option>
+                  <option value="2">★★☆☆☆ (2 - Poor)</option>
+                  <option value="1">★☆☆☆☆ (1 - Very Unsatisfied)</option>
+                </select>
+              </div>
+              <div class="form-group-d">
+                <label>Feedback Comment</label>
+                <textarea name="comment" placeholder="Was the solution effective? Any remarks for the staff?" rows="3"></textarea>
+              </div>
+              <button type="submit" class="btn btn-warning btn-sm">
+                <i class="fas fa-check"></i> Submit Feedback
+              </button>
+            </form>
+          </div>
+        {% else %}
+          <div style="padding:16px; background:#f8fafc; border-radius:10px; font-size:13px; color:var(--text-muted);">
+            <i class="fas fa-clock" style="margin-right:6px;"></i> Feedback will become available once the issue is marked <strong>Resolved</strong> by college staff.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Timeline Column -->
+    <div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:18px;">
+          <i class="fas fa-history" style="color:var(--primary);"></i> Lifecycle &amp; Audit Trail
+        </div>
+        <div class="timeline">
+          {% for ev in timeline %}
+          <div class="timeline-item {{ ev.status }}">
+            <div class="timeline-date">{{ ev.created_at.strftime('%d %b %Y, %I:%M %p') }}</div>
+            <div class="timeline-text">
+              {% set c = ev %}
+              {% include 'partials/status_badge.html' %}
+            </div>
+            <div class="timeline-sub" style="margin-top:6px;">{{ ev.note }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <a href="{{ url_for('student.my_complaints') }}" class="btn btn-gray btn-sm">
+          <i class="fas fa-arrow-left"></i> Back to Complaints List
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

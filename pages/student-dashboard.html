@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Dashboard | SCFMS</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+</head>
+<body class="app-body">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-circle"><i class="fas fa-university"></i></div>
+    <div>
+      <h2>Pillai HOC Polytechnic</h2>
+      <p>SCFMS Portal</p>
+    </div>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar"><i class="fas fa-user-graduate"></i></div>
+    <div class="user-info">
+      <div class="name" id="sidebarName">Student</div>
+      <div class="role" id="sidebarRole">student</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section"><span class="nav-section-label">Main</span></div>
+    <div class="nav-item active" data-page="dashboard" onclick="showSection('dashboard', this)">
+      <i class="fas fa-th-large"></i> Dashboard
+    </div>
+    <div class="nav-item" data-page="submit" onclick="showSection('submit', this)">
+      <i class="fas fa-plus-circle"></i> Submit Complaint
+    </div>
+    <div class="nav-item" data-page="mycomplaints" onclick="showSection('mycomplaints', this)">
+      <i class="fas fa-list-alt"></i> My Complaints
+      <span class="nav-badge" id="myComplaintsBadge">0</span>
+    </div>
+    <div class="nav-section"><span class="nav-section-label">Profile</span></div>
+    <div class="nav-item" data-page="feedback" onclick="showSection('feedback', this)">
+      <i class="fas fa-star"></i> Feedback
+    </div>
+    <div class="nav-item" data-page="profile" onclick="showSection('profile', this)">
+      <i class="fas fa-user-circle"></i> My Profile
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <h1 id="pageTitle">Dashboard</h1>
+      <p id="pageSubtitle">Welcome back! Here's your overview.</p>
+    </div>
+    <div class="top-bar-right">
+      <div class="top-bar-btn" onclick="toggleNotif()" title="Notifications">
+        <i class="fas fa-bell"></i>
+        <div class="notif-dot" id="notifDot"></div>
+      </div>
+      <div class="top-bar-btn" onclick="showSection('profile', document.querySelector('[data-page=profile]'))" title="Profile">
+        <i class="fas fa-user"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Panel -->
+  <div class="notif-panel" id="notifPanel">
+    <div class="notif-header">
+      <i class="fas fa-bell"></i> Notifications
+      <button style="float:right; background:none; color:var(--primary); font-size:12px; font-weight:600;" onclick="markAllNotificationsRead()">Mark all read</button>
+    </div>
+    <div id="notifList"></div>
+  </div>
+
+  <!-- PAGE SECTIONS -->
+  <div class="page-content">
+
+    <!-- ====== DASHBOARD SECTION ====== -->
+    <section id="sec-dashboard">
+      <div class="stats-grid" id="statsGrid"></div>
+
+      <div class="grid-2">
+        <!-- Recent Complaints -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Recent Complaints</div>
+              <div class="card-subtitle">Your latest submissions</div>
+            </div>
+            <button class="btn btn-blue btn-sm" onclick="showSection('submit', document.querySelector('[data-page=submit]'))">
+              <i class="fas fa-plus"></i> New
+            </button>
+          </div>
+          <div id="recentComplaintsTable"></div>
+        </div>
+
+        <!-- Status Summary (Chart) -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Status Overview</div>
+              <div class="card-subtitle">Your complaint distribution</div>
+            </div>
+          </div>
+          <div class="bar-chart" id="barChart"></div>
+          <div id="statusSummaryList" style="margin-top:16px;"></div>
+        </div>
+      </div>
+
+      <!-- Quick Tips -->
+      <div class="card" style="background: linear-gradient(135deg,#4361ee,#7209b7); color:white; border:none;">
+        <div style="display:flex; align-items:center; gap:20px;">
+          <div style="font-size:48px;"><i class="fas fa-lightbulb"></i></div>
+          <div>
+            <h3 style="font-size:16px; margin-bottom:8px;">How to get faster resolution?</h3>
+            <ul style="font-size:13px; line-height:2; opacity:0.9; padding-left:0; list-style:none;">
+              <li><i class="fas fa-check-circle" style="margin-right:8px;"></i>Set the correct <strong>Priority</strong> (High = urgent issues)</li>
+              <li><i class="fas fa-check-circle" style="margin-right:8px;"></i>Choose the right <strong>Category</strong> so it's assigned correctly</li>
+              <li><i class="fas fa-check-circle" style="margin-right:8px;"></i>Write a <strong>clear description</strong> with specific details</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== SUBMIT COMPLAINT SECTION ====== -->
+    <section id="sec-submit" style="display:none;">
+      <div class="card" style="max-width: 700px;">
+        <div class="card-header">
+          <div>
+            <div class="card-title"><i class="fas fa-edit"></i> Submit New Complaint</div>
+            <div class="card-subtitle">Fill in all details for faster resolution</div>
+          </div>
+        </div>
+        <form id="complaintForm" onsubmit="submitComplaint(event)">
+          <div class="form-row">
+            <div class="form-group-d">
+              <label><i class="fas fa-tag"></i> Category *</label>
+              <select id="cCategory" required>
+                <option value="">Select category</option>
+                <option value="hostel">🏢 Hostel</option>
+                <option value="mess">🍽️ Mess / Canteen</option>
+                <option value="lab">🔬 Laboratory</option>
+                <option value="faculty">👨‍🏫 Faculty</option>
+                <option value="library">📚 Library</option>
+                <option value="other">📌 Other</option>
+              </select>
+            </div>
+            <div class="form-group-d">
+              <label><i class="fas fa-fire"></i> Priority *</label>
+              <select id="cPriority" required>
+                <option value="">Select priority</option>
+                <option value="high">🔴 High – Urgent (affects health/safety)</option>
+                <option value="medium">🟡 Medium – Important but not urgent</option>
+                <option value="low">🟢 Low – Minor issue</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group-d">
+            <label><i class="fas fa-heading"></i> Title *</label>
+            <input type="text" id="cTitle" placeholder="Brief title of your complaint" required maxlength="100"/>
+          </div>
+          <div class="form-group-d">
+            <label><i class="fas fa-align-left"></i> Description *</label>
+            <textarea id="cDescription" placeholder="Describe your issue in detail. Include location, date, how many students affected, etc." required minlength="20"></textarea>
+          </div>
+          <div id="submitAlert" class="alert hidden" style="margin-bottom:16px;"></div>
+          <div style="display:flex; gap:12px;">
+            <button type="submit" class="btn btn-blue btn-sm">
+              <i class="fas fa-paper-plane"></i> Submit Complaint
+            </button>
+            <button type="reset" class="btn btn-gray btn-sm" onclick="document.getElementById('submitAlert').className='alert hidden'">
+              <i class="fas fa-undo"></i> Clear
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Decision Table Info -->
+      <div class="card" style="max-width:700px; background:#f8fafc; border: 1px solid var(--border);">
+        <div class="card-title" style="margin-bottom:12px;"><i class="fas fa-info-circle" style="color:var(--primary)"></i> Assignment Rules (Decision Table)</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Category</th><th>Priority</th><th>Assigned To</th><th>Expected Resolution</th></tr></thead>
+            <tbody>
+              <tr><td>Hostel / Mess</td><td><span class="badge badge-high">High</span></td><td>Warden</td><td>24 hours</td></tr>
+              <tr><td>Hostel / Mess</td><td><span class="badge badge-medium">Medium</span></td><td>Warden</td><td>3 days</td></tr>
+              <tr><td>Lab / Library</td><td><span class="badge badge-high">High</span></td><td>HOD</td><td>24 hours</td></tr>
+              <tr><td>Faculty</td><td><span class="badge badge-medium">Medium</span></td><td>HOD</td><td>3 days</td></tr>
+              <tr><td>Any</td><td><span class="badge badge-low">Low</span></td><td>Admin Review</td><td>7 days</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== MY COMPLAINTS SECTION ====== -->
+    <section id="sec-mycomplaints" style="display:none;">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">My Complaints</div>
+            <div class="card-subtitle">Track status of all your submissions</div>
+          </div>
+          <button class="btn btn-blue btn-sm" onclick="showSection('submit', document.querySelector('[data-page=submit]'))">
+            <i class="fas fa-plus"></i> New Complaint
+          </button>
+        </div>
+
+        <div class="filter-bar">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Search complaints..." oninput="filterComplaints()"/>
+          </div>
+          <select class="filter-select" id="filterStatus" onchange="filterComplaints()">
+            <option value="">All Status</option>
+            <option value="submitted">Submitted</option>
+            <option value="assigned">Assigned</option>
+            <option value="inprogress">In Progress</option>
+            <option value="resolved">Resolved</option>
+            <option value="closed">Closed</option>
+          </select>
+          <select class="filter-select" id="filterCategory" onchange="filterComplaints()">
+            <option value="">All Categories</option>
+            <option value="hostel">Hostel</option>
+            <option value="mess">Mess</option>
+            <option value="lab">Lab</option>
+            <option value="faculty">Faculty</option>
+            <option value="library">Library</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="complaintsTableBody"></tbody>
+          </table>
+        </div>
+        <div id="complaintsEmpty" class="empty-state" style="display:none;">
+          <i class="fas fa-clipboard-list"></i>
+          <h3>No complaints found</h3>
+          <p>You haven't submitted any complaints yet.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== FEEDBACK SECTION ====== -->
+    <section id="sec-feedback" style="display:none;">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title"><i class="fas fa-star"></i> Give Feedback</div>
+            <div class="card-subtitle">Rate resolved complaints</div>
+          </div>
+        </div>
+        <div id="feedbackList"></div>
+      </div>
+    </section>
+
+    <!-- ====== PROFILE SECTION ====== -->
+    <section id="sec-profile" style="display:none;">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; max-width:800px;">
+        <div class="card">
+          <div style="text-align:center; margin-bottom:20px;">
+            <div style="width:80px; height:80px; border-radius:50%; background:linear-gradient(135deg,var(--primary),var(--secondary)); display:flex; align-items:center; justify-content:center; margin:0 auto 12px; font-size:36px; color:white;">
+              <i class="fas fa-user-graduate"></i>
+            </div>
+            <h2 id="profileName" style="font-size:18px; font-weight:700;"></h2>
+            <p id="profileRole" style="color:var(--text-muted); font-size:13px;"></p>
+          </div>
+          <div id="profileDetails"></div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:16px;">Activity Summary</div>
+          <div id="activitySummary"></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<!-- COMPLAINT DETAIL MODAL -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal" style="max-width:680px;">
+    <div class="modal-header">
+      <span class="modal-title">Complaint Details</span>
+      <div class="modal-close" onclick="closeModal('detailModal')"><i class="fas fa-times"></i></div>
+    </div>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<!-- FEEDBACK MODAL -->
+<div class="modal-overlay" id="feedbackModal">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-header">
+      <span class="modal-title"><i class="fas fa-star" style="color:var(--warning)"></i> Rate Resolution</span>
+      <div class="modal-close" onclick="closeModal('feedbackModal')"><i class="fas fa-times"></i></div>
+    </div>
+    <div>
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">How satisfied are you with the resolution of your complaint?</p>
+      <div class="star-rating" id="starRating" style="justify-content:center; margin-bottom:16px;"></div>
+      <div class="form-group-d">
+        <label>Comment (optional)</label>
+        <textarea id="feedbackComment" placeholder="Any additional feedback..." rows="3"></textarea>
+      </div>
+      <input type="hidden" id="feedbackComplaintId"/>
+      <button class="btn btn-blue btn-full" onclick="submitFeedback()"><i class="fas fa-paper-plane"></i> Submit Feedback</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/data.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/utils.js"></script>
+<script>
+let currentUser = null;
+let selectedRating = 0;
+let allComplaints = [];
+
+window.onload = function() {
+  currentUser = requireAuth('student');
+  if (!currentUser) return;
+  document.getElementById('sidebarName').textContent = currentUser.name;
+  document.getElementById('sidebarRole').textContent = '🎓 ' + (currentUser.branch || 'Student') + ' - Sem ' + (currentUser.semester || '');
+  renderDashboard();
+  updateNotifBadge(currentUser.id);
+  renderNotifPanel(currentUser.id);
+};
+
+function showSection(name, el) {
+  document.querySelectorAll('[id^="sec-"]').forEach(s => s.style.display = 'none');
+  document.getElementById('sec-' + name).style.display = 'block';
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const titles = { dashboard:'Dashboard', submit:'Submit Complaint', mycomplaints:'My Complaints', feedback:'Feedback', profile:'My Profile' };
+  const subs = { dashboard:'Welcome back! Here\'s your overview.', submit:'Fill in all details for faster resolution.', mycomplaints:'Track status of all your submissions.', feedback:'Rate resolved complaints.', profile:'Your account details.' };
+  document.getElementById('pageTitle').textContent = titles[name] || 'Dashboard';
+  document.getElementById('pageSubtitle').textContent = subs[name] || '';
+  if (name === 'mycomplaints') renderComplaintsTable();
+  if (name === 'feedback')     renderFeedbackSection();
+  if (name === 'profile')      renderProfile();
+}
+
+// ── DASHBOARD ──────────────────────────────────────────────────────────
+function renderDashboard() {
+  const stats = getComplaintStats(currentUser.id, 'student');
+  const complaints = getComplaints().filter(c => c.studentId === currentUser.id);
+  allComplaints = complaints;
+
+  // Badge count
+  document.getElementById('myComplaintsBadge').textContent = stats.submitted;
+
+  // Stats
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-clipboard-list"></i></div><div class="stat-info"><div class="count">${stats.total}</div><div class="label">Total Complaints</div></div></div>
+    <div class="stat-card"><div class="stat-icon orange"><i class="fas fa-paper-plane"></i></div><div class="stat-info"><div class="count">${stats.submitted}</div><div class="label">Pending / Open</div><div class="trend up"><i class="fas fa-arrow-up"></i> Awaiting action</div></div></div>
+    <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-spinner"></i></div><div class="stat-info"><div class="count">${stats.inprogress}</div><div class="label">In Progress</div></div></div>
+    <div class="stat-card"><div class="stat-icon green"><i class="fas fa-check-circle"></i></div><div class="stat-info"><div class="count">${stats.resolved + stats.closed}</div><div class="label">Resolved / Closed</div><div class="trend up"><i class="fas fa-check"></i> All done</div></div></div>
+  `;
+
+  // Recent complaints table
+  const recent = complaints.slice(-3).reverse();
+  if (recent.length === 0) {
+    document.getElementById('recentComplaintsTable').innerHTML = `<div class="empty-state"><i class="fas fa-clipboard"></i><h3>No complaints yet</h3><p>Click "New" to submit your first complaint.</p></div>`;
+  } else {
+    document.getElementById('recentComplaintsTable').innerHTML = `
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Title</th><th>Category</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody>
+            ${recent.map(c => `
+              <tr style="cursor:pointer;" onclick="viewComplaint('${c.id}')">
+                <td style="max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.title}</td>
+                <td>${categoryPill(c.category)}</td>
+                <td>${statusBadge(c.status)}</td>
+                <td style="font-size:11px; color:var(--text-muted);">${formatDate(c.createdAt)}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  // Bar chart
+  const cats = ['hostel','mess','lab','faculty','library','other'];
+  const max = Math.max(1, ...cats.map(cat => complaints.filter(c => c.category === cat).length));
+  document.getElementById('barChart').innerHTML = cats.map(cat => {
+    const count = complaints.filter(c => c.category === cat).length;
+    const h = Math.max(4, (count / max) * 100);
+    return `<div class="bar-item"><div class="bar-val">${count}</div><div class="bar" style="height:${h}px;"></div><div class="bar-label">${capitalize(cat)}</div></div>`;
+  }).join('');
+
+  // Status summary list
+  const statusData = [
+    { label:'Submitted', count: stats.submitted, cls:'badge-submitted', icon:'fa-paper-plane' },
+    { label:'In Progress', count: stats.inprogress, cls:'badge-inprogress', icon:'fa-spinner' },
+    { label:'Resolved', count: stats.resolved, cls:'badge-resolved', icon:'fa-check-circle' },
+    { label:'Closed', count: stats.closed, cls:'badge-closed', icon:'fa-lock' }
+  ];
+  document.getElementById('statusSummaryList').innerHTML = statusData.map(s => `
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border);">
+      <span class="badge ${s.cls}"><i class="fas ${s.icon}"></i> ${s.label}</span>
+      <div style="flex:1; margin:0 12px;"><div class="progress-wrap"><div class="progress-bar" style="width:${stats.total?Math.round(s.count/stats.total*100):0}%; background:${s.cls==='badge-resolved'?'var(--success)':s.cls==='badge-inprogress'?'var(--secondary)':s.cls==='badge-closed'?'#94a3b8':'var(--primary)'}"></div></div></div>
+      <span style="font-size:12px; font-weight:700; min-width:20px; text-align:right;">${s.count}</span>
+    </div>`).join('');
+}
+
+// ── COMPLAINTS TABLE ───────────────────────────────────────────────────
+function renderComplaintsTable() {
+  allComplaints = getComplaints().filter(c => c.studentId === currentUser.id);
+  filterComplaints();
+}
+
+function filterComplaints() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const status = document.getElementById('filterStatus').value;
+  const cat    = document.getElementById('filterCategory').value;
+  let filtered = allComplaints.filter(c => {
+    const matchSearch = c.title.toLowerCase().includes(search) || c.description.toLowerCase().includes(search);
+    const matchStatus = !status || c.status === status;
+    const matchCat    = !cat || c.category === cat;
+    return matchSearch && matchStatus && matchCat;
+  });
+
+  const tbody = document.getElementById('complaintsTableBody');
+  const empty = document.getElementById('complaintsEmpty');
+  if (filtered.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  tbody.innerHTML = filtered.map((c, i) => `
+    <tr>
+      <td style="font-size:12px; color:var(--text-muted);">${i+1}</td>
+      <td><strong style="cursor:pointer; color:var(--primary);" onclick="viewComplaint('${c.id}')">${c.title}</strong></td>
+      <td>${categoryPill(c.category)}</td>
+      <td>${priorityBadge(c.priority)}</td>
+      <td>${statusBadge(c.status)}</td>
+      <td style="font-size:12px; color:var(--text-muted);">${formatDate(c.createdAt)}</td>
+      <td>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button class="btn btn-outline btn-xs" onclick="viewComplaint('${c.id}')"><i class="fas fa-eye"></i> View</button>
+          ${(c.status === 'resolved' && !c.feedback) ? `<button class="btn btn-warning btn-xs" onclick="openFeedbackModal('${c.id}')"><i class="fas fa-star"></i> Rate</button>` : ''}
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+// ── SUBMIT COMPLAINT ───────────────────────────────────────────────────
+function submitComplaint(e) {
+  e.preventDefault();
+  const data = {
+    category:    document.getElementById('cCategory').value,
+    priority:    document.getElementById('cPriority').value,
+    title:       document.getElementById('cTitle').value.trim(),
+    description: document.getElementById('cDescription').value.trim()
+  };
+  const newC = addComplaint(data);
+  const alert = document.getElementById('submitAlert');
+  alert.textContent = '✅ Complaint submitted successfully! Complaint ID: ' + newC.id;
+  alert.className = 'alert success';
+  document.getElementById('complaintForm').reset();
+  showToast('Complaint submitted successfully!');
+  renderDashboard();
+  setTimeout(() => showSection('mycomplaints', document.querySelector('[data-page=mycomplaints]')), 1500);
+}
+
+// ── VIEW COMPLAINT DETAIL ──────────────────────────────────────────────
+function viewComplaint(id) {
+  const c = getComplaintById(id);
+  if (!c) return;
+  document.getElementById('modalContent').innerHTML = `
+    <div class="complaint-detail-header">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
+        <div>
+          <h2>${c.title}</h2>
+          <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
+            ${statusBadge(c.status)} ${priorityBadge(c.priority)} ${categoryPill(c.category)}
+          </div>
+        </div>
+        <div style="font-size:11px; opacity:0.8; text-align:right;">
+          <div>ID: <code style="background:rgba(255,255,255,0.2);padding:2px 6px;border-radius:4px;">${c.id}</code></div>
+          <div style="margin-top:4px;">${formatDateTime(c.createdAt)}</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#f8fafc; border-radius:12px; padding:16px; margin-bottom:20px; font-size:13px; line-height:1.7; color:var(--text-dark);">
+      ${c.description}
+    </div>
+
+    ${c.assignedTo ? `<div style="display:flex; align-items:center; gap:10px; padding:12px 16px; background:var(--primary-light); border-radius:10px; margin-bottom:20px; font-size:13px;">
+      <i class="fas fa-user-check" style="color:var(--primary);"></i>
+      <span>Assigned to: <strong>${c.assignedName}</strong></span>
+      <span style="color:var(--text-muted); margin-left:auto;">${formatDate(c.updatedAt)}</span>
+    </div>` : '<div style="padding:12px 16px; background:#fff7ed; border-radius:10px; margin-bottom:20px; font-size:13px;"><i class="fas fa-clock" style="color:#f4a261;"></i> Awaiting assignment by admin.</div>'}
+
+    <div style="margin-bottom:20px;">
+      <h4 style="font-size:14px; font-weight:700; margin-bottom:12px;"><i class="fas fa-stream" style="color:var(--primary);"></i> Progress Timeline</h4>
+      <div class="timeline">
+        ${c.timeline.map(t => `
+          <div class="timeline-item ${t.status}">
+            <div class="timeline-date">${formatDateTime(t.date)}</div>
+            <div class="timeline-text">${statusBadge(t.status)}</div>
+            <div class="timeline-sub">${t.note}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    ${c.feedback ? `
+      <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:16px;">
+        <div style="font-size:13px; font-weight:700; margin-bottom:8px;"><i class="fas fa-star" style="color:var(--warning);"></i> Your Feedback</div>
+        <div style="margin-bottom:6px;">${starsHtml(c.feedback.rating)}</div>
+        <div style="font-size:13px; color:var(--text-muted);">${c.feedback.comment || 'No comment'}</div>
+      </div>` : (c.status === 'resolved' ? `
+      <button class="btn btn-warning btn-sm" onclick="closeModal('detailModal'); openFeedbackModal('${c.id}')">
+        <i class="fas fa-star"></i> Rate this resolution
+      </button>` : '')}
+  `;
+  openModal('detailModal');
+}
+
+// ── FEEDBACK ───────────────────────────────────────────────────────────
+function renderFeedbackSection() {
+  const complaints = getComplaints().filter(c => c.studentId === currentUser.id && (c.status === 'resolved' || c.status === 'closed'));
+  const container = document.getElementById('feedbackList');
+  if (complaints.length === 0) {
+    container.innerHTML = `<div class="empty-state"><i class="fas fa-star"></i><h3>No resolved complaints yet</h3><p>Come back once your complaints are resolved.</p></div>`;
+    return;
+  }
+  container.innerHTML = complaints.map(c => `
+    <div style="border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:12px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+      <div style="flex:1;">
+        <div style="font-size:14px; font-weight:600;">${c.title}</div>
+        <div style="margin-top:4px; display:flex; gap:8px;">${categoryPill(c.category)} ${statusBadge(c.status)}</div>
+      </div>
+      <div style="text-align:right;">
+        ${c.feedback ? `<div>${starsHtml(c.feedback.rating)}</div><div style="font-size:12px; color:var(--text-muted); margin-top:4px;">${c.feedback.comment || 'No comment'}</div>`
+          : `<button class="btn btn-warning btn-sm" onclick="openFeedbackModal('${c.id}')"><i class="fas fa-star"></i> Give Feedback</button>`}
+      </div>
+    </div>`).join('');
+}
+
+function openFeedbackModal(complaintId) {
+  document.getElementById('feedbackComplaintId').value = complaintId;
+  selectedRating = 0;
+  renderStars(0);
+  document.getElementById('feedbackComment').value = '';
+  openModal('feedbackModal');
+}
+
+function renderStars(rating) {
+  document.getElementById('starRating').innerHTML = Array.from({length:5}, (_,i) => `
+    <i class="fas fa-star star ${i < rating ? 'active' : ''}" style="font-size:28px; cursor:pointer;" onclick="selectRating(${i+1})"></i>
+  `).join('');
+}
+
+function selectRating(r) { selectedRating = r; renderStars(r); }
+
+function submitFeedback() {
+  if (selectedRating === 0) { showToast('Please select a rating!', 'error'); return; }
+  const id = document.getElementById('feedbackComplaintId').value;
+  const comment = document.getElementById('feedbackComment').value;
+  addFeedback(id, selectedRating, comment);
+  closeModal('feedbackModal');
+  showToast('Feedback submitted! Thank you.');
+  renderFeedbackSection();
+}
+
+// ── PROFILE ────────────────────────────────────────────────────────────
+function renderProfile() {
+  document.getElementById('profileName').textContent = currentUser.name;
+  document.getElementById('profileRole').textContent = '🎓 Student – ' + (currentUser.branch || 'N/A');
+  document.getElementById('profileDetails').innerHTML = `
+    <div style="display:flex; flex-direction:column; gap:14px;">
+      ${[['fa-id-card','Roll No', currentUser.rollNo],['fa-envelope','Email', currentUser.email],['fa-code-branch','Branch', currentUser.branch],['fa-layer-group','Semester', currentUser.semester],['fa-university','Institute','Pillai HOC Polytechnic, Rasayani']].map(([icon,label,val]) => `
+        <div style="display:flex; align-items:center; gap:12px; padding:10px; background:#f8fafc; border-radius:10px;">
+          <div style="width:32px; height:32px; border-radius:8px; background:var(--primary-light); display:flex; align-items:center; justify-content:center; color:var(--primary);"><i class="fas ${icon}"></i></div>
+          <div><div style="font-size:11px; color:var(--text-muted);">${label}</div><div style="font-size:13px; font-weight:600;">${val||'N/A'}</div></div>
+        </div>`).join('')}
+    </div>`;
+  const stats = getComplaintStats(currentUser.id, 'student');
+  document.getElementById('activitySummary').innerHTML = `
+    ${[['Total Submitted', stats.total,'var(--primary)'],['Pending', stats.submitted,'#f4a261'],['In Progress', stats.inprogress,'var(--secondary)'],['Resolved', stats.resolved,'var(--success)'],['Closed', stats.closed,'var(--text-muted)']].map(([label,val,color]) => `
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border);">
+        <span style="font-size:13px; color:var(--text-muted);">${label}</span>
+        <span style="font-size:16px; font-weight:800; color:${color};">${val}</span>
+      </div>`).join('')}`;
+}
+
+// ── MODAL HELPERS ──────────────────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ── NOTIFICATIONS ──────────────────────────────────────────────────────
+let notifOpen = false;
+function toggleNotif() {
+  notifOpen = !notifOpen;
+  document.getElementById('notifPanel').classList.toggle('open', notifOpen);
+}
+function markAllNotificationsRead() {
+  markAllRead(currentUser.id);
+  updateNotifBadge(currentUser.id);
+  renderNotifPanel(currentUser.id);
+  showToast('All notifications marked as read.');
+}
+
+document.addEventListener('click', e => {
+  const panel = document.getElementById('notifPanel');
+  const btn = document.querySelector('.top-bar-btn');
+  if (!panel.contains(e.target) && btn && !btn.contains(e.target)) {
+    notifOpen = false;
+    panel.classList.remove('open');
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}Manage Complaint #{{ complaint.id }}{% endblock %}
+{% block avatar_bg %}linear-gradient(135deg,#f72585,#7209b7){% endblock %}
+{% block avatar_icon %}fa-user-shield{% endblock %}
+{% block user_role_label %}🛡️ Administrator – Pillai HOC Polytechnic{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section"><span class="nav-section-label">Administration</span></div>
+<a href="{{ url_for('admin.dashboard') }}"  class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
+<a href="{{ url_for('admin.complaints') }}" class="nav-item active"><i class="fas fa-clipboard-list"></i> Complaints</a>
+<a href="{{ url_for('admin.users') }}"      class="nav-item"><i class="fas fa-users"></i> User Directory</a>
+<a href="{{ url_for('admin.reports') }}"    class="nav-item"><i class="fas fa-chart-bar"></i> Analytics &amp; Reports</a>
+{% endblock %}
+
+{% block page_title %}Ticket #{{ complaint.id }} Administration{% endblock %}
+{% block page_subtitle %}Assign staff, override resolution states, review timeline audit.{% endblock %}
+
+{% block content %}
+<div style="max-width: 950px;">
+  <!-- Header Banner -->
+  <div class="complaint-detail-header">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+      <div>
+        <h2>{{ complaint.title }}</h2>
+        <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; align-items:center;">
+          {% set c = complaint %}
+          {% include 'partials/status_badge.html' %}
+          {% include 'partials/priority_badge.html' %}
+          {% include 'partials/category_pill.html' %}
+        </div>
+      </div>
+      <div style="font-size:12px; opacity:0.9; text-align:right;">
+        <div>Logged: <strong>{{ complaint.created_at.strftime('%d %b %Y, %I:%M %p') }}</strong></div>
+        <div style="margin-top:4px;">Student: <strong>{{ complaint.student.name }} ({{ complaint.student.roll_no }})</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <!-- Left Column: Details & Admin Actions -->
+    <div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px;"><i class="fas fa-file-alt" style="color:var(--primary);"></i> Complaint Details</div>
+        <div style="font-size:14px; line-height:1.7; color:var(--text-dark); background:#f8fafc; padding:16px; border-radius:10px; border:1px solid var(--border);">
+          {{ complaint.description }}
+        </div>
+
+        <div style="margin-top:16px; font-size:13px; line-height:1.8;">
+          <div><strong style="color:var(--text-muted);">Complainant:</strong> {{ complaint.student.name }}</div>
+          <div><strong style="color:var(--text-muted);">Enrollment No:</strong> {{ complaint.student.roll_no }}</div>
+          <div><strong style="color:var(--text-muted);">Department / Branch:</strong> {{ complaint.student.branch }} (Semester {{ complaint.student.semester }})</div>
+          <div><strong style="color:var(--text-muted);">Email:</strong> {{ complaint.student.email }}</div>
+        </div>
+      </div>
+
+      <!-- Staff Assignment Card -->
+      <div class="card" style="border: 2px solid var(--primary);">
+        <div class="card-title" style="margin-bottom:12px; color:var(--primary);">
+          <i class="fas fa-user-check"></i> Assign / Reassign Staff Member
+        </div>
+        <form method="POST" action="{{ url_for('admin.assign', cid=complaint.id) }}">
+          <div class="form-group-d">
+            <label>Select Staff / Authority *</label>
+            <select name="staff_id" required>
+              <option value="">-- Choose Staff Member --</option>
+              {% for s in staff_list %}
+              <option value="{{ s.id }}" {% if complaint.assigned_to == s.id %}selected{% endif %}>
+                {{ s.name }} – {{ s.designation or 'Faculty' }} ({{ s.department }})
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group-d">
+            <label>Assignment Directive / Note</label>
+            <textarea name="note" placeholder="Instructions for the assigned staff member..." rows="2"></textarea>
+          </div>
+          <button type="submit" class="btn btn-blue btn-full">
+            <i class="fas fa-paper-plane"></i> Dispatch to Staff
+          </button>
+        </form>
+      </div>
+
+      <!-- Status Override Card -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px;"><i class="fas fa-sliders-h" style="color:var(--secondary);"></i> Admin Status Override</div>
+        <form method="POST" action="{{ url_for('admin.update_status', cid=complaint.id) }}">
+          <div class="form-group-d">
+            <label>Set Status Directly</label>
+            <select name="status" required>
+              <option value="submitted"  {% if complaint.status == 'submitted' %}selected{% endif %}>Submitted</option>
+              <option value="assigned"   {% if complaint.status == 'assigned' %}selected{% endif %}>Assigned</option>
+              <option value="inprogress" {% if complaint.status == 'inprogress' %}selected{% endif %}>In Progress</option>
+              <option value="resolved"   {% if complaint.status == 'resolved' %}selected{% endif %}>Resolved</option>
+              <option value="closed"     {% if complaint.status == 'closed' %}selected{% endif %}>Closed</option>
+            </select>
+          </div>
+          <div class="form-group-d">
+            <label>Administrative Reason / Note</label>
+            <input type="text" name="note" placeholder="Official reason for state transition..."/>
+          </div>
+          <button type="submit" class="btn btn-gray btn-sm">
+            <i class="fas fa-check"></i> Apply Status Override
+          </button>
+        </form>
+      </div>
+
+      {% if complaint.feedback %}
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px;"><i class="fas fa-star" style="color:var(--warning);"></i> Student Feedback Received</div>
+        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:16px;">
+          <div style="color:var(--warning); font-size:18px; margin-bottom:6px;">
+            {% for i in range(complaint.feedback.rating) %}★{% endfor %}
+            {% for i in range(5 - complaint.feedback.rating) %}<span style="color:#cbd5e1;">★</span>{% endfor %}
+          </div>
+          <p style="font-size:13px; color:var(--text-dark);">"{{ complaint.feedback.comment or 'No remark' }}"</p>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Right Column: Audit Timeline -->
+    <div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:18px;">
+          <i class="fas fa-stream" style="color:var(--primary);"></i> Complete Lifecycle Audit
+        </div>
+        <div class="timeline">
+          {% for ev in timeline %}
+          <div class="timeline-item {{ ev.status }}">
+            <div class="timeline-date">{{ ev.created_at.strftime('%d %b %Y, %I:%M %p') }}</div>
+            <div class="timeline-text">
+              {% set c = ev %}
+              {% include 'partials/status_badge.html' %}
+            </div>
+            <div class="timeline-sub" style="margin-top:6px;">{{ ev.note }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px;">
+        <a href="{{ url_for('admin.complaints') }}" class="btn btn-gray btn-sm">
+          <i class="fas fa-arrow-left"></i> Back to Complaints
+        </a>
+        <form method="POST" action="{{ url_for('admin.delete_complaint', cid=complaint.id) }}" onsubmit="return confirm('Permanently delete ticket #{{ complaint.id }}?');">
+          <button type="submit" class="btn btn-red btn-sm">
+            <i class="fas fa-trash"></i> Delete Ticket
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}All Campus Complaints{% endblock %}
+{% block avatar_bg %}linear-gradient(135deg,#06d6a0,#0096c7){% endblock %}
+{% block avatar_icon %}fa-chalkboard-teacher{% endblock %}
+{% block user_role_label %}👨‍🏫 {{ current_user.designation or 'Faculty' }} – {{ current_user.department }}{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section"><span class="nav-section-label">Main</span></div>
+<a href="{{ url_for('staff.dashboard') }}"      class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
+<a href="{{ url_for('staff.all_complaints') }}" class="nav-item active"><i class="fas fa-list"></i> All Complaints</a>
+{% endblock %}
+
+{% block page_title %}Institute Grievance Registry{% endblock %}
+{% block page_subtitle %}Campus-wide overview of reported concerns across all departments{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-title">All Registered Complaints ({{ complaints|length }})</div>
+      <div class="card-subtitle">Transparent institutional record under MSBTE Quality Assurance</div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Subject</th>
+          <th>Category</th>
+          <th>Priority</th>
+          <th>Student</th>
+          <th>Status</th>
+          <th>Assigned Authority</th>
+          <th>Submitted On</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in complaints %}
+        <tr>
+          <td>#{{ c.id }}</td>
+          <td><strong>{{ c.title }}</strong></td>
+          <td>{% include 'partials/category_pill.html' %}</td>
+          <td>{% include 'partials/priority_badge.html' %}</td>
+          <td style="font-size:12px;">{{ c.student.name }}</td>
+          <td>{% include 'partials/status_badge.html' %}</td>
+          <td style="font-size:12px;">
+            {% if c.assignee %}
+              {{ c.assignee.name }}
+            {% else %}
+              <span style="color:var(--text-muted); font-style:italic;">Unassigned</span>
+            {% endif %}
+          </td>
+          <td style="font-size:12px; color:var(--text-muted);">{{ c.created_at.strftime('%d %b %Y') }}</td>
+          <td>
+            <a href="{{ url_for('staff.complaint_detail', cid=c.id) }}" class="btn btn-outline btn-xs">
+              <i class="fas fa-eye"></i> View
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

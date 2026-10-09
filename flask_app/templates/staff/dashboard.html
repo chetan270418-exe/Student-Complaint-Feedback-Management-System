@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}Staff Dashboard{% endblock %}
+{% block avatar_bg %}linear-gradient(135deg,#06d6a0,#0096c7){% endblock %}
+{% block avatar_icon %}fa-chalkboard-teacher{% endblock %}
+{% block user_role_label %}👨‍🏫 {{ current_user.designation or 'Faculty' }} – {{ current_user.department }}{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section"><span class="nav-section-label">Main</span></div>
+<a href="{{ url_for('staff.dashboard') }}"      class="nav-item active"><i class="fas fa-th-large"></i> Dashboard</a>
+<a href="{{ url_for('staff.all_complaints') }}" class="nav-item"><i class="fas fa-list"></i> All Complaints</a>
+{% endblock %}
+
+{% block page_title %}Faculty / Staff Workspace{% endblock %}
+{% block page_subtitle %}Pillai HOC Polytechnic – Complaints allocated to your attention{% endblock %}
+
+{% block content %}
+<!-- Stats -->
+<div class="stats-grid">
+  <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-tasks"></i></div><div class="stat-info"><div class="count">{{ stats.total }}</div><div class="label">Total Assigned</div></div></div>
+  <div class="stat-card"><div class="stat-icon orange"><i class="fas fa-hourglass-half"></i></div><div class="stat-info"><div class="count">{{ stats.pending }}</div><div class="label">Action Required</div></div></div>
+  <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-spinner"></i></div><div class="stat-info"><div class="count">{{ stats.inprogress }}</div><div class="label">In Progress</div></div></div>
+  <div class="stat-card"><div class="stat-icon green"><i class="fas fa-check-circle"></i></div><div class="stat-info"><div class="count">{{ stats.resolved }}</div><div class="label">Resolved</div></div></div>
+</div>
+
+<!-- Pending complaints for this staff -->
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-title"><i class="fas fa-exclamation-circle" style="color:var(--danger);"></i> Urgent / Open Tasks Assigned to You</div>
+      <div class="card-subtitle">Tickets that need status update or field inspection</div>
+    </div>
+    <a href="{{ url_for('staff.all_complaints') }}" class="btn btn-outline btn-sm">
+      <i class="fas fa-globe"></i> View All Campus Complaints
+    </a>
+  </div>
+
+  {% if pending %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Subject</th>
+          <th>Category</th>
+          <th>Priority</th>
+          <th>Student</th>
+          <th>Status</th>
+          <th>Assigned Since</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in pending %}
+        <tr>
+          <td><strong style="color:var(--text-muted);">#{{ c.id }}</strong></td>
+          <td>
+            <a href="{{ url_for('staff.complaint_detail', cid=c.id) }}" style="font-weight:600; color:var(--text-dark);">
+              {{ c.title }}
+            </a>
+          </td>
+          <td>{% include 'partials/category_pill.html' %}</td>
+          <td>{% include 'partials/priority_badge.html' %}</td>
+          <td style="font-size:12px;">
+            <strong>{{ c.student.name }}</strong><br>
+            <span style="color:var(--text-muted);">{{ c.student.roll_no }}</span>
+          </td>
+          <td>{% include 'partials/status_badge.html' %}</td>
+          <td style="font-size:12px; color:var(--text-muted);">{{ c.created_at.strftime('%d %b %Y') }}</td>
+          <td>
+            <a href="{{ url_for('staff.complaint_detail', cid=c.id) }}" class="btn btn-blue btn-xs">
+              <i class="fas fa-edit"></i> Resolve / Update
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="fas fa-check-double" style="color:var(--success);"></i>
+    <h3 style="color:var(--success);">All caught up!</h3>
+    <p>There are no open complaints waiting for your review.</p>
+  </div>
+  {% endif %}
+</div>
+
+<!-- All history assigned -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">Completed &amp; Resolved Complaints History</div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Subject</th>
+          <th>Category</th>
+          <th>Status</th>
+          <th>Student Rating</th>
+          <th>Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in assigned %}
+          {% if c.status in ('resolved', 'closed') %}
+          <tr>
+            <td>#{{ c.id }}</td>
+            <td><strong>{{ c.title }}</strong></td>
+            <td>{% include 'partials/category_pill.html' %}</td>
+            <td>{% include 'partials/status_badge.html' %}</td>
+            <td>
+              {% if c.feedback %}
+                <span style="color:var(--warning);">
+                  {% for i in range(c.feedback.rating) %}★{% endfor %}
+                </span>
+                <span style="font-size:11px; color:var(--text-muted);">({{ c.feedback.rating }}/5)</span>
+              {% else %}
+                <span style="color:var(--text-muted); font-size:12px;">No rating yet</span>
+              {% endif %}
+            </td>
+            <td style="font-size:12px; color:var(--text-muted);">{{ c.updated_at.strftime('%d %b %Y') }}</td>
+            <td>
+              <a href="{{ url_for('staff.complaint_detail', cid=c.id) }}" class="btn btn-outline btn-xs">
+                <i class="fas fa-eye"></i> Details
+              </a>
+            </td>
+          </tr>
+          {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

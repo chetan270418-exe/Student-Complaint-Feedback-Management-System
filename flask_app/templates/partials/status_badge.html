@@ -1,0 +1,9 @@
+{% set status_map = {
+  'submitted':  ('badge-submitted',  'fa-paper-plane',    'Submitted'),
+  'assigned':   ('badge-assigned',   'fa-user-check',     'Assigned'),
+  'inprogress': ('badge-inprogress', 'fa-spinner',        'In Progress'),
+  'resolved':   ('badge-resolved',   'fa-check-circle',   'Resolved'),
+  'closed':     ('badge-closed',     'fa-lock',           'Closed')
+} %}
+{% set s = status_map.get(c.status, ('badge-submitted','fa-circle', c.status)) %}
+<span class="badge {{ s[0] }}"><i class="fas {{ s[1] }}"></i> {{ s[2] }}</span>

@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Staff Dashboard | SCFMS</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+</head>
+<body class="app-body">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-circle"><i class="fas fa-university"></i></div>
+    <div><h2>Pillai HOC Polytechnic</h2><p>SCFMS Staff Portal</p></div>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar" style="background:linear-gradient(135deg,#06d6a0,#0096c7);"><i class="fas fa-chalkboard-teacher"></i></div>
+    <div class="user-info">
+      <div class="name" id="sidebarName">Staff</div>
+      <div class="role" id="sidebarRole">Staff Member</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section"><span class="nav-section-label">Main</span></div>
+    <div class="nav-item active" data-page="dashboard" onclick="showSection('dashboard', this)">
+      <i class="fas fa-th-large"></i> Dashboard
+    </div>
+    <div class="nav-item" data-page="assigned" onclick="showSection('assigned', this)">
+      <i class="fas fa-tasks"></i> Assigned Complaints
+      <span class="nav-badge" id="assignedBadge">0</span>
+    </div>
+    <div class="nav-item" data-page="all" onclick="showSection('all', this)">
+      <i class="fas fa-list"></i> All Complaints
+    </div>
+    <div class="nav-section"><span class="nav-section-label">Account</span></div>
+    <div class="nav-item" data-page="profile" onclick="showSection('profile', this)">
+      <i class="fas fa-user-circle"></i> My Profile
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <h1 id="pageTitle">Staff Dashboard</h1>
+      <p id="pageSubtitle">Manage and resolve assigned complaints.</p>
+    </div>
+    <div class="top-bar-right">
+      <div class="top-bar-btn" onclick="toggleNotif()">
+        <i class="fas fa-bell"></i><div class="notif-dot" id="notifDot"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Panel -->
+  <div class="notif-panel" id="notifPanel">
+    <div class="notif-header"><i class="fas fa-bell"></i> Notifications</div>
+    <div id="notifList"></div>
+  </div>
+
+  <div class="page-content">
+
+    <!-- DASHBOARD SECTION -->
+    <section id="sec-dashboard">
+      <div class="stats-grid" id="statsGrid"></div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title"><i class="fas fa-tasks" style="color:var(--primary)"></i> Assigned to Me</div>
+            <div class="card-subtitle">Complaints pending your action</div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>#</th><th>Title</th><th>Category</th><th>Priority</th><th>Student</th><th>Status</th><th>Action</th></tr>
+            </thead>
+            <tbody id="dashAssignedBody"></tbody>
+          </table>
+        </div>
+        <div id="dashEmpty" class="empty-state" style="display:none;">
+          <i class="fas fa-check-double" style="font-size:48px; color:#06d6a0;"></i>
+          <h3 style="color:var(--success);">All clear!</h3>
+          <p>No complaints currently assigned to you.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ASSIGNED COMPLAINTS SECTION -->
+    <section id="sec-assigned" style="display:none;">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">My Assigned Complaints</div>
+            <div class="card-subtitle">Complaints assigned to you for action</div>
+          </div>
+        </div>
+        <div class="filter-bar">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchAssigned" placeholder="Search..." oninput="renderAssignedTable()"/>
+          </div>
+          <select class="filter-select" id="filterAssignedStatus" onchange="renderAssignedTable()">
+            <option value="">All Status</option>
+            <option value="assigned">Assigned</option>
+            <option value="inprogress">In Progress</option>
+            <option value="resolved">Resolved</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>#</th><th>Title</th><th>Category</th><th>Priority</th><th>Student</th><th>Status</th><th>Date</th><th>Action</th></tr>
+            </thead>
+            <tbody id="assignedBody"></tbody>
+          </table>
+        </div>
+        <div id="assignedEmpty" class="empty-state" style="display:none;">
+          <i class="fas fa-inbox"></i><h3>No assigned complaints</h3><p>Nothing to show yet.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ALL COMPLAINTS (read-only view) -->
+    <section id="sec-all" style="display:none;">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">All Complaints</div>
+          <div class="card-subtitle">System-wide complaint overview</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>#</th><th>Title</th><th>Category</th><th>Priority</th><th>Student</th><th>Status</th><th>Assigned To</th><th>Date</th></tr>
+            </thead>
+            <tbody id="allBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROFILE -->
+    <section id="sec-profile" style="display:none;">
+      <div style="max-width:500px;">
+        <div class="card">
+          <div style="text-align:center; margin-bottom:20px;">
+            <div style="width:80px; height:80px; border-radius:50%; background:linear-gradient(135deg,#06d6a0,#0096c7); display:flex; align-items:center; justify-content:center; margin:0 auto 12px; font-size:36px; color:white;">
+              <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <h2 id="profileName" style="font-size:18px; font-weight:700;"></h2>
+            <p style="color:var(--text-muted);" id="profileDesig"></p>
+          </div>
+          <div id="profileDetails"></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<!-- UPDATE STATUS MODAL -->
+<div class="modal-overlay" id="updateModal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header">
+      <span class="modal-title">Update Complaint Status</span>
+      <div class="modal-close" onclick="closeModal('updateModal')"><i class="fas fa-times"></i></div>
+    </div>
+    <div id="updateModalContent"></div>
+    <div class="form-group-d" style="margin-top:16px;">
+      <label>New Status</label>
+      <select id="newStatus">
+        <option value="inprogress">🔄 Mark In Progress</option>
+        <option value="resolved">✅ Mark Resolved</option>
+      </select>
+    </div>
+    <div class="form-group-d">
+      <label>Update Note</label>
+      <textarea id="updateNote" placeholder="Describe the action taken..." rows="3"></textarea>
+    </div>
+    <input type="hidden" id="updateComplaintId"/>
+    <button class="btn btn-blue btn-sm" onclick="doUpdateStatus()">
+      <i class="fas fa-save"></i> Update Status
+    </button>
+  </div>
+</div>
+
+<!-- DETAIL VIEW MODAL -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal" style="max-width:680px;">
+    <div class="modal-header">
+      <span class="modal-title">Complaint Details</span>
+      <div class="modal-close" onclick="closeModal('detailModal')"><i class="fas fa-times"></i></div>
+    </div>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<script src="../js/data.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/utils.js"></script>
+<script>
+let currentUser = null;
+
+window.onload = function() {
+  currentUser = requireAuth('staff');
+  if (!currentUser) return;
+  document.getElementById('sidebarName').textContent = currentUser.name;
+  document.getElementById('sidebarRole').textContent = '👨‍🏫 ' + (currentUser.designation || 'Staff');
+  renderDashboard();
+  updateNotifBadge(currentUser.id);
+  renderNotifPanel(currentUser.id);
+};
+
+function showSection(name, el) {
+  document.querySelectorAll('[id^="sec-"]').forEach(s => s.style.display = 'none');
+  document.getElementById('sec-' + name).style.display = 'block';
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const titles = {dashboard:'Staff Dashboard', assigned:'Assigned Complaints', all:'All Complaints', profile:'My Profile'};
+  document.getElementById('pageTitle').textContent = titles[name]||name;
+  if (name === 'assigned') renderAssignedTable();
+  if (name === 'all')      renderAllTable();
+  if (name === 'profile')  renderProfile();
+}
+
+function renderDashboard() {
+  const all = getComplaints();
+  const myComplaints = all.filter(c => c.assignedTo === currentUser.id);
+  const pending = myComplaints.filter(c => ['assigned','inprogress'].includes(c.status));
+  document.getElementById('assignedBadge').textContent = pending.length;
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-tasks"></i></div><div class="stat-info"><div class="count">${myComplaints.length}</div><div class="label">Total Assigned</div></div></div>
+    <div class="stat-card"><div class="stat-icon orange"><i class="fas fa-hourglass-half"></i></div><div class="stat-info"><div class="count">${pending.length}</div><div class="label">Pending Action</div></div></div>
+    <div class="stat-card"><div class="stat-icon green"><i class="fas fa-check-circle"></i></div><div class="stat-info"><div class="count">${myComplaints.filter(c=>c.status==='resolved'||c.status==='closed').length}</div><div class="label">Resolved</div></div></div>
+    <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-spinner"></i></div><div class="stat-info"><div class="count">${myComplaints.filter(c=>c.status==='inprogress').length}</div><div class="label">In Progress</div></div></div>
+  `;
+
+  const tbody = document.getElementById('dashAssignedBody');
+  const empty = document.getElementById('dashEmpty');
+  const active = myComplaints.filter(c => !['resolved','closed'].includes(c.status));
+  if (active.length === 0) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = active.map((c,i) => `
+    <tr>
+      <td style="font-size:12px;color:var(--text-muted);">${i+1}</td>
+      <td><strong>${c.title}</strong></td>
+      <td>${categoryPill(c.category)}</td>
+      <td>${priorityBadge(c.priority)}</td>
+      <td style="font-size:12px;">${c.studentName}</td>
+      <td>${statusBadge(c.status)}</td>
+      <td>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-outline btn-xs" onclick="viewDetail('${c.id}')"><i class="fas fa-eye"></i></button>
+          <button class="btn btn-blue btn-xs" onclick="openUpdate('${c.id}')"><i class="fas fa-edit"></i> Update</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function renderAssignedTable() {
+  const search = (document.getElementById('searchAssigned')?.value || '').toLowerCase();
+  const statusF = document.getElementById('filterAssignedStatus')?.value || '';
+  let complaints = getComplaints().filter(c => c.assignedTo === currentUser.id);
+  if (statusF) complaints = complaints.filter(c => c.status === statusF);
+  if (search)  complaints = complaints.filter(c => c.title.toLowerCase().includes(search) || c.studentName.toLowerCase().includes(search));
+
+  const body  = document.getElementById('assignedBody');
+  const empty = document.getElementById('assignedEmpty');
+  if (complaints.length === 0) { body.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  body.innerHTML = complaints.map((c,i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td><strong>${c.title}</strong></td>
+      <td>${categoryPill(c.category)}</td>
+      <td>${priorityBadge(c.priority)}</td>
+      <td>${c.studentName}<br><span style="font-size:11px;color:var(--text-muted);">${c.rollNo}</span></td>
+      <td>${statusBadge(c.status)}</td>
+      <td style="font-size:11px;color:var(--text-muted);">${formatDate(c.createdAt)}</td>
+      <td>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn btn-outline btn-xs" onclick="viewDetail('${c.id}')"><i class="fas fa-eye"></i></button>
+          ${!['resolved','closed'].includes(c.status) ? `<button class="btn btn-blue btn-xs" onclick="openUpdate('${c.id}')"><i class="fas fa-edit"></i></button>` : ''}
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function renderAllTable() {
+  const complaints = getComplaints();
+  document.getElementById('allBody').innerHTML = complaints.map((c,i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td><strong>${c.title}</strong></td>
+      <td>${categoryPill(c.category)}</td>
+      <td>${priorityBadge(c.priority)}</td>
+      <td>${c.studentName}</td>
+      <td>${statusBadge(c.status)}</td>
+      <td style="font-size:12px;">${c.assignedName || '<span style="color:var(--text-muted)">Unassigned</span>'}</td>
+      <td style="font-size:11px;color:var(--text-muted);">${formatDate(c.createdAt)}</td>
+    </tr>`).join('');
+}
+
+function viewDetail(id) {
+  const c = getComplaintById(id);
+  if (!c) return;
+  document.getElementById('detailContent').innerHTML = `
+    <div class="complaint-detail-header">
+      <h2>${c.title}</h2>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">${statusBadge(c.status)} ${priorityBadge(c.priority)} ${categoryPill(c.category)}</div>
+      <div style="font-size:12px;opacity:0.8;margin-top:8px;">Student: ${c.studentName} (${c.rollNo}) | Submitted: ${formatDateTime(c.createdAt)}</div>
+    </div>
+    <div style="background:#f8fafc;border-radius:12px;padding:16px;margin-bottom:20px;font-size:13px;line-height:1.7;">${c.description}</div>
+    <h4 style="font-size:14px;font-weight:700;margin-bottom:12px;">Progress Timeline</h4>
+    <div class="timeline">
+      ${c.timeline.map(t=>`<div class="timeline-item ${t.status}"><div class="timeline-date">${formatDateTime(t.date)}</div><div class="timeline-text">${statusBadge(t.status)}</div><div class="timeline-sub">${t.note}</div></div>`).join('')}
+    </div>
+    ${c.feedback ? `<div style="margin-top:16px;padding:12px;background:#f0fdf4;border-radius:10px;"><strong>Student Feedback:</strong> ${starsHtml(c.feedback.rating)} "${c.feedback.comment||''}"</div>` : ''}
+  `;
+  openModal('detailModal');
+}
+
+function openUpdate(id) {
+  const c = getComplaintById(id);
+  if (!c) return;
+  document.getElementById('updateComplaintId').value = id;
+  document.getElementById('updateModalContent').innerHTML = `
+    <div style="background:#f8fafc;border-radius:10px;padding:14px;font-size:13px;">
+      <strong>${c.title}</strong><br>
+      <div style="margin-top:6px;">${categoryPill(c.category)} ${statusBadge(c.status)}</div>
+    </div>`;
+  document.getElementById('updateNote').value = '';
+  openModal('updateModal');
+}
+
+function doUpdateStatus() {
+  const id     = document.getElementById('updateComplaintId').value;
+  const status = document.getElementById('newStatus').value;
+  const note   = document.getElementById('updateNote').value || `Status updated to ${status} by ${currentUser.name}.`;
+  updateComplaintStatus(id, status, note);
+  closeModal('updateModal');
+  showToast('Complaint status updated!');
+  renderDashboard();
+  renderAssignedTable();
+}
+
+function renderProfile() {
+  document.getElementById('profileName').textContent = currentUser.name;
+  document.getElementById('profileDesig').textContent = currentUser.designation || 'Staff Member';
+  document.getElementById('profileDetails').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      ${[['fa-envelope','Email',currentUser.email],['fa-building','Department',currentUser.department],['fa-id-badge','Designation',currentUser.designation],['fa-university','Institute','Pillai HOC Polytechnic, Rasayani']].map(([icon,label,val]) => `
+        <div style="display:flex;align-items:center;gap:12px;padding:10px;background:#f8fafc;border-radius:10px;">
+          <div style="width:32px;height:32px;border-radius:8px;background:rgba(6,214,160,0.1);display:flex;align-items:center;justify-content:center;color:var(--success);"><i class="fas ${icon}"></i></div>
+          <div><div style="font-size:11px;color:var(--text-muted);">${label}</div><div style="font-size:13px;font-weight:600;">${val||'N/A'}</div></div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+let notifOpen = false;
+function toggleNotif() {
+  notifOpen = !notifOpen;
+  document.getElementById('notifPanel').classList.toggle('open', notifOpen);
+}
+</script>
+</body>
+</html>

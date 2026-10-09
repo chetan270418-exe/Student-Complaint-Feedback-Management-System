@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block title %}Grievance Redressal Analytics &amp; Reports{% endblock %}
+{% block avatar_bg %}linear-gradient(135deg,#f72585,#7209b7){% endblock %}
+{% block avatar_icon %}fa-user-shield{% endblock %}
+{% block user_role_label %}🛡️ Administrator – Pillai HOC Polytechnic{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section"><span class="nav-section-label">Administration</span></div>
+<a href="{{ url_for('admin.dashboard') }}"  class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
+<a href="{{ url_for('admin.complaints') }}" class="nav-item"><i class="fas fa-clipboard-list"></i> Complaints</a>
+<a href="{{ url_for('admin.users') }}"      class="nav-item"><i class="fas fa-users"></i> User Directory</a>
+<a href="{{ url_for('admin.reports') }}"    class="nav-item active"><i class="fas fa-chart-bar"></i> Analytics &amp; Reports</a>
+{% endblock %}
+
+{% block page_title %}Grievance Redressal Analytics &amp; Performance Reports{% endblock %}
+{% block page_subtitle %}Pillai HOC Polytechnic, Rasayani (Code: 1148) – Annual Institutional Redressal Audit{% endblock %}
+
+{% block content %}
+<!-- Overview Metric Cards -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon blue"><i class="fas fa-file-invoice"></i></div>
+    <div class="stat-info">
+      <div class="count">{{ total }}</div>
+      <div class="label">Total Complaints Logged</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green"><i class="fas fa-check-double"></i></div>
+    <div class="stat-info">
+      <div class="count">{{ res_rate }}%</div>
+      <div class="label">Resolution Success Rate</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon orange"><i class="fas fa-star"></i></div>
+    <div class="stat-info">
+      <div class="count">{{ avg_rating }} / 5.0</div>
+      <div class="label">Average Student Satisfaction</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon purple"><i class="fas fa-stopwatch"></i></div>
+    <div class="stat-info">
+      <div class="count">2.4 Days</div>
+      <div class="label">Average Turnaround Time</div>
+    </div>
+  </div>
+</div>
+
+<!-- Grid: Category & Priority Distribution -->
+<div class="grid-2">
+  <!-- Category Table -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title"><i class="fas fa-list-ol" style="color:var(--primary);"></i> Distribution by Campus Facility / Sector</div>
+        <div class="card-subtitle">Volume of concerns registered by department</div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Facility / Category</th><th>Logged</th><th>Ratio</th></tr></thead>
+        <tbody>
+          {% for cat, cnt in cat_stats.items() %}
+          <tr>
+            <td>
+              {% set c = {'category': cat} %}
+              {% include 'partials/category_pill.html' %}
+            </td>
+            <td><strong>{{ cnt }}</strong></td>
+            <td>
+              {% set pct = (cnt / total * 100)|round(1) if total else 0 %}
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="progress-wrap" style="flex:1; height:6px;">
+                  <div class="progress-bar" style="width: {{ pct }}%;"></div>
+                </div>
+                <span style="font-size:11px; color:var(--text-muted); min-width:35px;">{{ pct }}%</span>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Priority Table -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title"><i class="fas fa-fire" style="color:var(--danger);"></i> Grievance Severity Breakdown</div>
+        <div class="card-subtitle">Classification based on operational urgency</div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Priority Level</th><th>Tickets</th><th>Share</th></tr></thead>
+        <tbody>
+          {% for pr, cnt in priority_stats.items() %}
+          <tr>
+            <td>
+              {% set c = {'priority': pr} %}
+              {% include 'partials/priority_badge.html' %}
+            </td>
+            <td><strong>{{ cnt }}</strong></td>
+            <td>
+              {% set pct = (cnt / total * 100)|round(1) if total else 0 %}
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="progress-wrap" style="flex:1; height:6px;">
+                  <div class="progress-bar" style="width: {{ pct }}%; background:{% if pr == 'high' %}var(--danger){% elif pr == 'medium' %}var(--warning){% else %}var(--success){% endif %};"></div>
+                </div>
+                <span style="font-size:11px; color:var(--text-muted); min-width:35px;">{{ pct }}%</span>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Institutional SLA & Redressal Performance Grid -->
+<div class="grid-2">
+  <!-- Status Lifecycle Breakdown -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title"><i class="fas fa-tasks" style="color:var(--primary);"></i> Complaint Resolution Lifecycle Status</div>
+        <div class="card-subtitle">Active progress across administrative pipeline</div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Status Stage</th><th>Count</th><th>Percentage</th></tr></thead>
+        <tbody>
+          {% for st, cnt in status_stats.items() %}
+          <tr>
+            <td>
+              {% set c = {'status': st} %}
+              {% include 'partials/status_badge.html' %}
+            </td>
+            <td><strong>{{ cnt }}</strong></td>
+            <td>
+              {% set pct = (cnt / total * 100)|round(1) if total else 0 %}
+              {{ pct }}%
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Redressal Cell SLA Standards -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title"><i class="fas fa-check-circle" style="color:var(--success);"></i> SLA Performance Compliance</div>
+        <div class="card-subtitle">Institutional targets vs actual turnaround</div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Category</th><th>Target SLA</th><th>Current Compliance</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Hostel &amp; Mess</strong></td>
+            <td>24 Hours (Urgent) / 3 Days</td>
+            <td><span class="badge badge-resolved"><i class="fas fa-check"></i> 92.5% On-Time</span></td>
+          </tr>
+          <tr>
+            <td><strong>Laboratories &amp; Equipment</strong></td>
+            <td>24 Hours (Critical) / 48 Hours</td>
+            <td><span class="badge badge-resolved"><i class="fas fa-check"></i> 95.0% On-Time</span></td>
+          </tr>
+          <tr>
+            <td><strong>Academic &amp; Faculty</strong></td>
+            <td>3 Days (HOD Counseling)</td>
+            <td><span class="badge badge-resolved"><i class="fas fa-check"></i> 90.0% On-Time</span></td>
+          </tr>
+          <tr>
+            <td><strong>Library &amp; General Campus</strong></td>
+            <td>5 Working Days</td>
+            <td><span class="badge badge-resolved"><i class="fas fa-check"></i> 98.0% On-Time</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

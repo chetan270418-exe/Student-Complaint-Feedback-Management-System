@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}SCFMS{% endblock %} | Pillai HOC Polytechnic</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+</head>
+<body class="app-body">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-circle"><i class="fas fa-university"></i></div>
+    <div>
+      <h2>Pillai HOC Polytechnic</h2>
+      <p>SCFMS Portal</p>
+    </div>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar" style="background:{% block avatar_bg %}linear-gradient(135deg,#4361ee,#7209b7){% endblock %};">
+      <i class="fas {% block avatar_icon %}fa-user{% endblock %}"></i>
+    </div>
+    <div class="user-info">
+      <div class="name">{{ current_user.name }}</div>
+      <div class="role">{% block user_role_label %}{% endblock %}</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    {% block sidebar_nav %}{% endblock %}
+  </nav>
+  <div class="sidebar-footer">
+    <a href="{{ url_for('auth.logout') }}" class="logout-btn">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </a>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div>
+        <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+        <p>{% block page_subtitle %}{% endblock %}</p>
+      </div>
+    </div>
+    <div class="top-bar-right">
+      <a href="{{ url_for(current_user.role + '.notifications') if current_user.role == 'student' else '#' }}"
+         class="top-bar-btn notif-btn" title="Notifications">
+        <i class="fas fa-bell"></i>
+        {% if notif_count and notif_count > 0 %}
+          <span class="notif-badge">{{ notif_count }}</span>
+        {% endif %}
+      </a>
+    </div>
+  </div>
+
+  <!-- Flash Messages -->
+  <div class="flash-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash-msg flash-{{ category }}">
+            <i class="fas {% if category == 'success' %}fa-check-circle{% elif category == 'danger' %}fa-exclamation-circle{% elif category == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %}"></i>
+            {{ message }}
+            <button onclick="this.parentElement.remove()" class="flash-close">&times;</button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Page Content -->
+  <div class="page-content">
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+<script>
+  // Auto-hide flash messages
+  setTimeout(() => {
+    document.querySelectorAll('.flash-msg').forEach(el => el.style.opacity = '0');
+    setTimeout(() => document.querySelectorAll('.flash-msg').forEach(el => el.remove()), 400);
+  }, 4000);
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+  }
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

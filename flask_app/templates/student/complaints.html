@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}My Complaints{% endblock %}
+{% block avatar_bg %}linear-gradient(135deg,#4361ee,#7209b7){% endblock %}
+{% block avatar_icon %}fa-user-graduate{% endblock %}
+{% block user_role_label %}🎓 {{ current_user.branch }} – Sem {{ current_user.semester }}{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section"><span class="nav-section-label">Main</span></div>
+<a href="{{ url_for('student.dashboard') }}"    class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
+<a href="{{ url_for('student.submit') }}"       class="nav-item"><i class="fas fa-plus-circle"></i> Submit Complaint</a>
+<a href="{{ url_for('student.my_complaints') }}"class="nav-item active"><i class="fas fa-list-alt"></i> My Complaints</a>
+<a href="{{ url_for('student.notifications') }}"class="nav-item">
+  <i class="fas fa-bell"></i> Notifications
+  {% if notif_count %}<span class="nav-badge">{{ notif_count }}</span>{% endif %}
+</a>
+{% endblock %}
+
+{% block page_title %}My Submitted Complaints{% endblock %}
+{% block page_subtitle %}Review status, history, assigned authorities and add feedback.{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-title">All My Complaints ({{ complaints|length }})</div>
+      <div class="card-subtitle">Real-time status tracking and resolution progress</div>
+    </div>
+    <a href="{{ url_for('student.submit') }}" class="btn btn-blue btn-sm">
+      <i class="fas fa-plus"></i> Submit New Complaint
+    </a>
+  </div>
+
+  <!-- Filters -->
+  <form method="GET" action="{{ url_for('student.my_complaints') }}" class="filter-bar">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input type="text" name="search" placeholder="Search by title..." value="{{ search }}"/>
+    </div>
+    <select name="status" class="filter-select" onchange="this.form.submit()">
+      <option value="">All Statuses</option>
+      <option value="submitted"  {% if status_f == 'submitted' %}selected{% endif %}>Submitted</option>
+      <option value="assigned"   {% if status_f == 'assigned' %}selected{% endif %}>Assigned</option>
+      <option value="inprogress" {% if status_f == 'inprogress' %}selected{% endif %}>In Progress</option>
+      <option value="resolved"   {% if status_f == 'resolved' %}selected{% endif %}>Resolved</option>
+      <option value="closed"     {% if status_f == 'closed' %}selected{% endif %}>Closed</option>
+    </select>
+    <select name="category" class="filter-select" onchange="this.form.submit()">
+      <option value="">All Categories</option>
+      <option value="hostel"  {% if category_f == 'hostel' %}selected{% endif %}>Hostel</option>
+      <option value="mess"    {% if category_f == 'mess' %}selected{% endif %}>Mess</option>
+      <option value="lab"     {% if category_f == 'lab' %}selected{% endif %}>Lab</option>
+      <option value="faculty" {% if category_f == 'faculty' %}selected{% endif %}>Faculty</option>
+      <option value="library" {% if category_f == 'library' %}selected{% endif %}>Library</option>
+      <option value="other"   {% if category_f == 'other' %}selected{% endif %}>Other</option>
+    </select>
+    {% if search or status_f or category_f %}
+      <a href="{{ url_for('student.my_complaints') }}" class="btn btn-gray btn-sm">Reset</a>
+    {% endif %}
+  </form>
+
+  {% if complaints %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Subject</th>
+          <th>Category</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>Assigned Staff</th>
+          <th>Submitted On</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in complaints %}
+        <tr>
+          <td><strong style="color:var(--text-muted);">#{{ c.id }}</strong></td>
+          <td style="max-width:220px;">
+            <a href="{{ url_for('student.complaint_detail', cid=c.id) }}" style="font-weight:600; color:var(--text-dark);">
+              {{ c.title }}
+            </a>
+          </td>
+          <td>{% include 'partials/category_pill.html' %}</td>
+          <td>{% include 'partials/priority_badge.html' %}</td>
+          <td>{% include 'partials/status_badge.html' %}</td>
+          <td style="font-size:12px;">
+            {% if c.assignee %}
+              <i class="fas fa-user-tie" style="color:var(--primary); margin-right:4px;"></i> {{ c.assignee.name }}
+            {% else %}
+              <span style="color:var(--text-muted); font-style:italic;">Pending Assignment</span>
+            {% endif %}
+          </td>
+          <td style="font-size:12px; color:var(--text-muted);">{{ c.created_at.strftime('%d %b %Y, %I:%M %p') }}</td>
+          <td>
+            <a href="{{ url_for('student.complaint_detail', cid=c.id) }}" class="btn btn-outline btn-xs">
+              <i class="fas fa-eye"></i> View
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="fas fa-clipboard-list"></i>
+    <h3>No complaints found</h3>
+    <p>There are no complaints matching your criteria.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

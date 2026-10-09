@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# Temporary / Office lock files
+~$*.docx
+~$*.doc
+*.tmp
+
+# Operating system
+.DS_Store
+Thumbs.db

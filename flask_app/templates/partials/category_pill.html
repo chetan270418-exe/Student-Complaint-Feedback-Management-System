@@ -1,0 +1,10 @@
+{% set cat_map = {
+  'hostel':  ('cat-hostel',  'fa-building',            'Hostel'),
+  'mess':    ('cat-mess',    'fa-utensils',            'Mess'),
+  'lab':     ('cat-lab',     'fa-flask',               'Lab'),
+  'faculty': ('cat-faculty', 'fa-chalkboard-teacher',  'Faculty'),
+  'library': ('cat-library', 'fa-book',                'Library'),
+  'other':   ('cat-other',   'fa-ellipsis-h',          'Other')
+} %}
+{% set ct = cat_map.get(c.category, ('cat-other', 'fa-circle', c.category | capitalize)) %}
+<span class="category-pill {{ ct[0] }}"><i class="fas {{ ct[1] }}"></i> {{ ct[2] }}</span>

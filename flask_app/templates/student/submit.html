@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Submit Complaint{% endblock %}
+{% block avatar_bg %}linear-gradient(135deg,#4361ee,#7209b7){% endblock %}
+{% block avatar_icon %}fa-user-graduate{% endblock %}
+{% block user_role_label %}🎓 {{ current_user.branch }} – Sem {{ current_user.semester }}{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section"><span class="nav-section-label">Main</span></div>
+<a href="{{ url_for('student.dashboard') }}"    class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
+<a href="{{ url_for('student.submit') }}"       class="nav-item active"><i class="fas fa-plus-circle"></i> Submit Complaint</a>
+<a href="{{ url_for('student.my_complaints') }}"class="nav-item"><i class="fas fa-list-alt"></i> My Complaints</a>
+<a href="{{ url_for('student.notifications') }}"class="nav-item">
+  <i class="fas fa-bell"></i> Notifications
+  {% if notif_count %}<span class="nav-badge">{{ notif_count }}</span>{% endif %}
+</a>
+{% endblock %}
+
+{% block page_title %}Submit New Complaint{% endblock %}
+{% block page_subtitle %}Report an issue regarding campus, hostel, mess, academic or administrative facilities.{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px;">
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title"><i class="fas fa-edit" style="color:var(--primary);"></i> Complaint Form</div>
+        <div class="card-subtitle">Fill in all details accurately for prompt investigation and resolution.</div>
+      </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('student.submit') }}">
+      <div class="form-row">
+        <div class="form-group-d">
+          <label><i class="fas fa-tag"></i> Category *</label>
+          <select name="category" required>
+            <option value="">-- Select Category --</option>
+            <option value="hostel">🏢 Hostel (Maintenance, Cleanliness, Water, Power)</option>
+            <option value="mess">🍽️ Mess & Canteen (Food Hygiene, Quality, Timing)</option>
+            <option value="lab">🔬 Laboratory (Hardware, Equipment, Software)</option>
+            <option value="faculty">👨‍🏫 Faculty / Academics (Syllabus, Conduct, Classes)</option>
+            <option value="library">📚 Library (Books availability, Study hall, Facilities)</option>
+            <option value="other">📌 Other Campus Facilities (WiFi, Sports, Admin, Fees)</option>
+          </select>
+        </div>
+        <div class="form-group-d">
+          <label><i class="fas fa-fire"></i> Priority Level *</label>
+          <select name="priority" required>
+            <option value="">-- Select Priority --</option>
+            <option value="high">🔴 High – Critical (Emergency, Health/Safety risk, Severe disruption)</option>
+            <option value="medium" selected>🟡 Medium – Moderate (Impacting studies or daily routine)</option>
+            <option value="low">🟢 Low – Minor (General suggestion or non-urgent repair)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group-d">
+        <label><i class="fas fa-heading"></i> Subject / Title *</label>
+        <input type="text" name="title" placeholder="Brief summary of the issue (e.g., Computer Lab 2 PC power outage)" required maxlength="200"/>
+      </div>
+
+      <div class="form-group-d">
+        <label><i class="fas fa-align-left"></i> Detailed Description *</label>
+        <textarea name="description" placeholder="Provide full specifics: Exact location/room number, date and time noticed, number of students affected, and what steps were previously tried..." required rows="5"></textarea>
+      </div>
+
+      <div style="display:flex; gap:12px; margin-top:20px;">
+        <button type="submit" class="btn btn-blue">
+          <i class="fas fa-paper-plane"></i> Submit Complaint
+        </button>
+        <a href="{{ url_for('student.dashboard') }}" class="btn btn-gray">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Guidelines -->
+  <div class="card" style="background: #f8fafc; border: 1px dashed var(--border);">
+    <h4 style="font-size:14px; font-weight:700; margin-bottom:8px; color:var(--text-dark);">
+      <i class="fas fa-info-circle" style="color:var(--primary);"></i> Complaint Workflow & Policy
+    </h4>
+    <ul style="font-size:12px; color:var(--text-muted); line-height:1.9; padding-left:18px;">
+      <li>Once submitted, your complaint is automatically assigned status <strong>SUBMITTED</strong>.</li>
+      <li>System Administrator will review and dispatch the ticket to appropriate authority (HOD, Warden, or Department Head).</li>
+      <li>You will receive real-time notifications on your dashboard whenever status progresses.</li>
+      <li>Upon resolution, you will be invited to give an honest rating (1 to 5 stars) and feedback.</li>
+    </ul>
+  </div>
+</div>
+{% endblock %}

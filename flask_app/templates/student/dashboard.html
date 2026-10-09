@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Student Dashboard{% endblock %}
+{% block avatar_bg %}linear-gradient(135deg,#4361ee,#7209b7){% endblock %}
+{% block avatar_icon %}fa-user-graduate{% endblock %}
+{% block user_role_label %}🎓 {{ current_user.branch }} – Sem {{ current_user.semester }}{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section"><span class="nav-section-label">Main</span></div>
+<a href="{{ url_for('student.dashboard') }}"    class="nav-item {% if request.endpoint == 'student.dashboard' %}active{% endif %}"><i class="fas fa-th-large"></i> Dashboard</a>
+<a href="{{ url_for('student.submit') }}"       class="nav-item {% if request.endpoint == 'student.submit' %}active{% endif %}"><i class="fas fa-plus-circle"></i> Submit Complaint</a>
+<a href="{{ url_for('student.my_complaints') }}"class="nav-item {% if request.endpoint == 'student.my_complaints' %}active{% endif %}"><i class="fas fa-list-alt"></i> My Complaints</a>
+<a href="{{ url_for('student.notifications') }}"class="nav-item {% if request.endpoint == 'student.notifications' %}active{% endif %}">
+  <i class="fas fa-bell"></i> Notifications
+  {% if notif_count %}<span class="nav-badge">{{ notif_count }}</span>{% endif %}
+</a>
+{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Welcome back, {{ current_user.name }}!{% endblock %}
+
+{% block content %}
+<!-- Stats -->
+<div class="stats-grid">
+  <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-clipboard-list"></i></div><div class="stat-info"><div class="count">{{ stats.total }}</div><div class="label">Total Complaints</div></div></div>
+  <div class="stat-card"><div class="stat-icon orange"><i class="fas fa-paper-plane"></i></div><div class="stat-info"><div class="count">{{ stats.submitted }}</div><div class="label">Awaiting Action</div></div></div>
+  <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-spinner"></i></div><div class="stat-info"><div class="count">{{ stats.inprogress }}</div><div class="label">In Progress</div></div></div>
+  <div class="stat-card"><div class="stat-icon green"><i class="fas fa-check-circle"></i></div><div class="stat-info"><div class="count">{{ stats.resolved }}</div><div class="label">Resolved / Closed</div></div></div>
+</div>
+
+<div class="grid-2">
+  <!-- Recent Complaints -->
+  <div class="card">
+    <div class="card-header">
+      <div><div class="card-title">Recent Complaints</div><div class="card-subtitle">Your latest submissions</div></div>
+      <a href="{{ url_for('student.submit') }}" class="btn btn-blue btn-sm"><i class="fas fa-plus"></i> New</a>
+    </div>
+    {% if recent %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Title</th><th>Category</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody>
+        {% for c in recent %}
+          <tr onclick="window.location='{{ url_for('student.complaint_detail', cid=c.id) }}'" style="cursor:pointer;">
+            <td style="max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><strong>{{ c.title }}</strong></td>
+            <td>{{ c.category | capitalize }}</td>
+            <td>{% include 'partials/status_badge.html' %}</td>
+            <td style="font-size:11px;color:var(--text-muted);">{{ c.created_at.strftime('%d %b %Y') }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <i class="fas fa-clipboard"></i><h3>No complaints yet</h3>
+      <p>Click "New" to submit your first complaint.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Info Card -->
+  <div class="card" style="background:linear-gradient(135deg,#4361ee,#7209b7);color:white;border:none;">
+    <h3 style="margin-bottom:12px;font-size:15px;"><i class="fas fa-lightbulb"></i> Get Faster Resolution</h3>
+    <ul style="font-size:13px;line-height:2.2;list-style:none;">
+      <li><i class="fas fa-check-circle" style="margin-right:8px;"></i>Set correct <strong>Priority</strong> (High = urgent)</li>
+      <li><i class="fas fa-check-circle" style="margin-right:8px;"></i>Choose the right <strong>Category</strong></li>
+      <li><i class="fas fa-check-circle" style="margin-right:8px;"></i>Write a <strong>detailed description</strong></li>
+      <li><i class="fas fa-check-circle" style="margin-right:8px;"></i>Track status in <strong>My Complaints</strong></li>
+    </ul>
+    <a href="{{ url_for('student.submit') }}" class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:white;margin-top:12px;border:1px solid rgba(255,255,255,0.3);">
+      <i class="fas fa-plus"></i> Submit a Complaint
+    </a>
+  </div>
+</div>
+
+<!-- Escalation Matrix & SLA Reference -->
+<div class="card">
+  <div class="card-header">
+    <div><div class="card-title"><i class="fas fa-balance-scale" style="color:var(--primary);"></i> Institutional Escalation Matrix &amp; Resolution SLA</div>
+    <div class="card-subtitle">Official College Grievance Resolution Timelines &amp; Assigned Authorities</div></div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Category</th><th>Priority</th><th>Assigned To</th><th>Expected Resolution Time</th></tr></thead>
+      <tbody>
+        <tr><td>Hostel / Mess</td><td><span class="badge badge-high"><i class="fas fa-fire"></i> High</span></td><td>Hostel Warden</td><td>24 hours</td></tr>
+        <tr><td>Hostel / Mess</td><td><span class="badge badge-medium"><i class="fas fa-minus"></i> Medium</span></td><td>Hostel Warden</td><td>3 days</td></tr>
+        <tr><td>Lab / Library</td><td><span class="badge badge-high"><i class="fas fa-fire"></i> High</span></td><td>HOD / Librarian</td><td>24 hours</td></tr>
+        <tr><td>Faculty</td><td><span class="badge badge-medium"><i class="fas fa-minus"></i> Medium</span></td><td>HOD</td><td>3 days</td></tr>
+        <tr><td>Any</td><td><span class="badge badge-low"><i class="fas fa-arrow-down"></i> Low</span></td><td>Admin Review</td><td>7 days</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

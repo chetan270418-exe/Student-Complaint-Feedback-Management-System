@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}User Directory{% endblock %}
+{% block avatar_bg %}linear-gradient(135deg,#f72585,#7209b7){% endblock %}
+{% block avatar_icon %}fa-user-shield{% endblock %}
+{% block user_role_label %}🛡️ Administrator – Pillai HOC Polytechnic{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section"><span class="nav-section-label">Administration</span></div>
+<a href="{{ url_for('admin.dashboard') }}"  class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
+<a href="{{ url_for('admin.complaints') }}" class="nav-item"><i class="fas fa-clipboard-list"></i> Complaints</a>
+<a href="{{ url_for('admin.users') }}"      class="nav-item active"><i class="fas fa-users"></i> User Directory</a>
+<a href="{{ url_for('admin.reports') }}"    class="nav-item"><i class="fas fa-chart-bar"></i> Analytics &amp; Reports</a>
+{% endblock %}
+
+{% block page_title %}Institute User Directory{% endblock %}
+{% block page_subtitle %}Manage students, faculty members, and administrative staff accounts.{% endblock %}
+
+{% block content %}
+<!-- Stats Cards -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon blue"><i class="fas fa-user-graduate"></i></div>
+    <div class="stat-info">
+      <div class="count">{{ stats.students }}</div>
+      <div class="label">Registered Students</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green"><i class="fas fa-chalkboard-teacher"></i></div>
+    <div class="stat-info">
+      <div class="count">{{ stats.staff }}</div>
+      <div class="label">Faculty &amp; Wardens</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon purple"><i class="fas fa-user-shield"></i></div>
+    <div class="stat-info">
+      <div class="count">{{ stats.admins }}</div>
+      <div class="label">System Admins</div>
+    </div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <!-- Users List -->
+  <div>
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Registered Accounts ({{ users|length }})</div>
+          <div class="card-subtitle">Active system users across all roles</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Details</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for u in users %}
+            <tr>
+              <td>
+                <strong>{{ u.name }}</strong>
+                {% if u.id == current_user.id %}<span class="badge badge-assigned" style="font-size:10px;">You</span>{% endif %}
+              </td>
+              <td style="font-size:12px; color:var(--text-muted);">{{ u.email }}</td>
+              <td>
+                {% if u.role == 'student' %}
+                  <span class="badge badge-submitted"><i class="fas fa-user-graduate"></i> Student</span>
+                {% elif u.role == 'staff' %}
+                  <span class="badge badge-resolved"><i class="fas fa-chalkboard-teacher"></i> Staff</span>
+                {% else %}
+                  <span class="badge badge-inprogress"><i class="fas fa-user-shield"></i> Admin</span>
+                {% endif %}
+              </td>
+              <td style="font-size:11px; color:var(--text-muted);">
+                {% if u.role == 'student' %}
+                  {{ u.roll_no }} | {{ u.branch }} (Sem {{ u.semester }})
+                {% else %}
+                  {{ u.designation or u.department }}
+                {% endif %}
+              </td>
+              <td>
+                {% if u.role != 'admin' %}
+                <form method="POST" action="{{ url_for('admin.delete_user', uid=u.id) }}" onsubmit="return confirm('Delete user {{ u.name }}?');" style="display:inline;">
+                  <button type="submit" class="btn btn-red btn-xs" title="Delete User">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+                {% else %}
+                  <span style="font-size:11px; color:var(--text-muted); font-style:italic;">Protected</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add User Form -->
+  <div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><i class="fas fa-user-plus" style="color:var(--primary);"></i> Add New User</div>
+      </div>
+      <form method="POST" action="{{ url_for('admin.add_user') }}">
+        <div class="form-group-d">
+          <label>Full Name *</label>
+          <input type="text" name="name" placeholder="e.g. Prof. Anand Patil" required/>
+        </div>
+        <div class="form-group-d">
+          <label>Email *</label>
+          <input type="email" name="email" placeholder="e.g. anand@pillai.edu" required/>
+        </div>
+        <div class="form-group-d">
+          <label>Password *</label>
+          <input type="password" name="password" placeholder="Temporary password" required minlength="6"/>
+        </div>
+        <div class="form-group-d">
+          <label>Role *</label>
+          <select name="role" id="roleSelector" onchange="toggleRoleFields()" required>
+            <option value="student">Student</option>
+            <option value="staff">Faculty / Staff / Warden</option>
+          </select>
+        </div>
+
+        <!-- Student Fields -->
+        <div id="studentFields">
+          <div class="form-row">
+            <div class="form-group-d">
+              <label>Enrollment / Roll No.</label>
+              <input type="text" name="roll_no" placeholder="e.g. 25112270310"/>
+            </div>
+            <div class="form-group-d">
+              <label>Semester</label>
+              <select name="semester">
+                {% for s in range(1,7) %}<option value="{{ s }}">Sem {{ s }}</option>{% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="form-group-d">
+            <label>Branch / Department</label>
+            <select name="branch">
+              <option value="Computer Engineering">Computer Engineering</option>
+              <option value="Mechanical Engineering">Mechanical Engineering</option>
+              <option value="Civil Engineering">Civil Engineering</option>
+              <option value="Electronics Engineering">Electronics Engineering</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Staff Fields -->
+        <div id="staffFields" style="display:none;">
+          <div class="form-row">
+            <div class="form-group-d">
+              <label>Department</label>
+              <input type="text" name="department" placeholder="e.g. Computer Engineering"/>
+            </div>
+            <div class="form-group-d">
+              <label>Designation</label>
+              <input type="text" name="designation" placeholder="e.g. HOD / Lecturer / Warden"/>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-blue btn-full" style="margin-top:12px;">
+          <i class="fas fa-plus"></i> Create User Account
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleRoleFields() {
+  const r = document.getElementById('roleSelector').value;
+  document.getElementById('studentFields').style.display = r === 'student' ? 'block' : 'none';
+  document.getElementById('staffFields').style.display = r === 'staff' ? 'block' : 'none';
+}
+</script>
+{% endblock %}

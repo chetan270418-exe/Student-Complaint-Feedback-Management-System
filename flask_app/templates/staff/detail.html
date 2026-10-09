@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Complaint #{{ complaint.id }} Management{% endblock %}
+{% block avatar_bg %}linear-gradient(135deg,#06d6a0,#0096c7){% endblock %}
+{% block avatar_icon %}fa-chalkboard-teacher{% endblock %}
+{% block user_role_label %}👨‍🏫 {{ current_user.designation or 'Faculty' }} – {{ current_user.department }}{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section"><span class="nav-section-label">Main</span></div>
+<a href="{{ url_for('staff.dashboard') }}"      class="nav-item active"><i class="fas fa-th-large"></i> Dashboard</a>
+<a href="{{ url_for('staff.all_complaints') }}" class="nav-item"><i class="fas fa-list"></i> All Complaints</a>
+{% endblock %}
+
+{% block page_title %}Ticket #{{ complaint.id }} Action Center{% endblock %}
+{% block page_subtitle %}Review student details, record resolution steps, and update ticket lifecycle.{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px;">
+  <!-- Header Banner -->
+  <div class="complaint-detail-header">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+      <div>
+        <h2>{{ complaint.title }}</h2>
+        <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; align-items:center;">
+          {% set c = complaint %}
+          {% include 'partials/status_badge.html' %}
+          {% include 'partials/priority_badge.html' %}
+          {% include 'partials/category_pill.html' %}
+        </div>
+      </div>
+      <div style="font-size:12px; opacity:0.9; text-align:right;">
+        <div>Logged: <strong>{{ complaint.created_at.strftime('%d %b %Y, %I:%M %p') }}</strong></div>
+        <div style="margin-top:4px;">Student: <strong>{{ complaint.student.name }} ({{ complaint.student.roll_no }})</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <!-- Left Column: Details & Update Form -->
+    <div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px;"><i class="fas fa-info-circle" style="color:var(--primary);"></i> Complaint Description</div>
+        <div style="font-size:14px; line-height:1.7; color:var(--text-dark); background:#f8fafc; padding:16px; border-radius:10px; border:1px solid var(--border);">
+          {{ complaint.description }}
+        </div>
+
+        <div style="margin-top:16px; display:flex; flex-direction:column; gap:8px; font-size:13px; color:var(--text-muted);">
+          <div><i class="fas fa-user-graduate" style="width:20px;"></i> Student: <strong style="color:var(--text-dark);">{{ complaint.student.name }}</strong> ({{ complaint.student.branch }}, Sem {{ complaint.student.semester }})</div>
+          <div><i class="fas fa-envelope" style="width:20px;"></i> Email: <strong style="color:var(--text-dark);">{{ complaint.student.email }}</strong></div>
+        </div>
+      </div>
+
+      <!-- Action / Update Form (Only for assigned staff) -->
+      {% if complaint.assigned_to == current_user.id %}
+      <div class="card" style="border: 2px solid var(--primary);">
+        <div class="card-title" style="margin-bottom:12px; color:var(--primary);">
+          <i class="fas fa-wrench"></i> Take Action / Update Status
+        </div>
+        <form method="POST" action="{{ url_for('staff.update_status', cid=complaint.id) }}">
+          <div class="form-group-d">
+            <label>Progress Status *</label>
+            <select name="status" required>
+              <option value="inprogress" {% if complaint.status == 'inprogress' %}selected{% endif %}>
+                🔄 Mark In Progress (Work initiated / Inspection underway)
+              </option>
+              <option value="resolved" {% if complaint.status == 'resolved' %}selected{% endif %}>
+                ✅ Mark Resolved (Issue fixed, repair completed)
+              </option>
+            </select>
+          </div>
+          <div class="form-group-d">
+            <label>Action Remarks / Resolution Note *</label>
+            <textarea name="note" placeholder="Provide detailed summary of steps taken (e.g. Electrician repaired MCB box; Water pipeline leak sealed; Extra lecture sessions scheduled...)" required rows="4"></textarea>
+          </div>
+          <button type="submit" class="btn btn-blue btn-full">
+            <i class="fas fa-save"></i> Submit Action Update
+          </button>
+        </form>
+      </div>
+      {% endif %}
+
+      <!-- Feedback view if present -->
+      {% if complaint.feedback %}
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px;"><i class="fas fa-star" style="color:var(--warning);"></i> Student Feedback</div>
+        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:16px;">
+          <div style="color:var(--warning); font-size:18px; margin-bottom:6px;">
+            {% for i in range(complaint.feedback.rating) %}★{% endfor %}
+            {% for i in range(5 - complaint.feedback.rating) %}<span style="color:#cbd5e1;">★</span>{% endfor %}
+          </div>
+          <p style="font-size:13px; font-style:italic; color:var(--text-dark);">"{{ complaint.feedback.comment or 'No remark.' }}"</p>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Right Column: Audit Timeline -->
+    <div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:18px;">
+          <i class="fas fa-stream" style="color:var(--primary);"></i> Progress Timeline
+        </div>
+        <div class="timeline">
+          {% for ev in timeline %}
+          <div class="timeline-item {{ ev.status }}">
+            <div class="timeline-date">{{ ev.created_at.strftime('%d %b %Y, %I:%M %p') }}</div>
+            <div class="timeline-text">
+              {% set c = ev %}
+              {% include 'partials/status_badge.html' %}
+            </div>
+            <div class="timeline-sub" style="margin-top:6px;">{{ ev.note }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <a href="{{ url_for('staff.dashboard') }}" class="btn btn-gray btn-sm">
+          <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

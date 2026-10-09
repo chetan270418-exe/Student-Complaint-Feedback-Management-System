@@ -1,0 +1,7 @@
+{% set priority_map = {
+  'high':   ('badge-high',   'fa-fire',       'High'),
+  'medium': ('badge-medium', 'fa-minus',      'Medium'),
+  'low':    ('badge-low',    'fa-arrow-down', 'Low')
+} %}
+{% set p = priority_map.get(c.priority, ('badge-low', 'fa-circle', c.priority)) %}
+<span class="badge {{ p[0] }}"><i class="fas {{ p[1] }}"></i> {{ p[2] }}</span>

@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Manage Complaints{% endblock %}
+{% block avatar_bg %}linear-gradient(135deg,#f72585,#7209b7){% endblock %}
+{% block avatar_icon %}fa-user-shield{% endblock %}
+{% block user_role_label %}🛡️ Administrator – Pillai HOC Polytechnic{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section"><span class="nav-section-label">Administration</span></div>
+<a href="{{ url_for('admin.dashboard') }}"  class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
+<a href="{{ url_for('admin.complaints') }}" class="nav-item active"><i class="fas fa-clipboard-list"></i> Complaints</a>
+<a href="{{ url_for('admin.users') }}"      class="nav-item"><i class="fas fa-users"></i> User Directory</a>
+<a href="{{ url_for('admin.reports') }}"    class="nav-item"><i class="fas fa-chart-bar"></i> Analytics &amp; Reports</a>
+{% endblock %}
+
+{% block page_title %}Complaints Management Center{% endblock %}
+{% block page_subtitle %}Filter, review, reassign, update, or purge complaints across all campus sectors.{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-title">All Complaints ({{ complaints|length }})</div>
+      <div class="card-subtitle">Comprehensive institutional grievance audit log</div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <form method="GET" action="{{ url_for('admin.complaints') }}" class="filter-bar">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input type="text" name="search" placeholder="Search by title..." value="{{ search }}"/>
+    </div>
+    <select name="status" class="filter-select" onchange="this.form.submit()">
+      <option value="">All Statuses</option>
+      <option value="submitted"  {% if status_f == 'submitted' %}selected{% endif %}>Submitted</option>
+      <option value="assigned"   {% if status_f == 'assigned' %}selected{% endif %}>Assigned</option>
+      <option value="inprogress" {% if status_f == 'inprogress' %}selected{% endif %}>In Progress</option>
+      <option value="resolved"   {% if status_f == 'resolved' %}selected{% endif %}>Resolved</option>
+      <option value="closed"     {% if status_f == 'closed' %}selected{% endif %}>Closed</option>
+    </select>
+    <select name="priority" class="filter-select" onchange="this.form.submit()">
+      <option value="">All Priorities</option>
+      <option value="high"   {% if priority_f == 'high' %}selected{% endif %}>High</option>
+      <option value="medium" {% if priority_f == 'medium' %}selected{% endif %}>Medium</option>
+      <option value="low"    {% if priority_f == 'low' %}selected{% endif %}>Low</option>
+    </select>
+    <select name="category" class="filter-select" onchange="this.form.submit()">
+      <option value="">All Categories</option>
+      <option value="hostel"  {% if category_f == 'hostel' %}selected{% endif %}>Hostel</option>
+      <option value="mess"    {% if category_f == 'mess' %}selected{% endif %}>Mess</option>
+      <option value="lab"     {% if category_f == 'lab' %}selected{% endif %}>Lab</option>
+      <option value="faculty" {% if category_f == 'faculty' %}selected{% endif %}>Faculty</option>
+      <option value="library" {% if category_f == 'library' %}selected{% endif %}>Library</option>
+      <option value="other"   {% if category_f == 'other' %}selected{% endif %}>Other</option>
+    </select>
+    {% if search or status_f or priority_f or category_f %}
+      <a href="{{ url_for('admin.complaints') }}" class="btn btn-gray btn-sm">Reset</a>
+    {% endif %}
+  </form>
+
+  {% if complaints %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Subject</th>
+          <th>Category</th>
+          <th>Priority</th>
+          <th>Student</th>
+          <th>Status</th>
+          <th>Assigned Staff</th>
+          <th>Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in complaints %}
+        <tr>
+          <td><strong>#{{ c.id }}</strong></td>
+          <td style="max-width:200px;">
+            <a href="{{ url_for('admin.complaint_detail', cid=c.id) }}" style="color:var(--text-dark); font-weight:600;">
+              {{ c.title }}
+            </a>
+          </td>
+          <td>{% include 'partials/category_pill.html' %}</td>
+          <td>{% include 'partials/priority_badge.html' %}</td>
+          <td style="font-size:12px;">
+            {{ c.student.name }}<br>
+            <span style="color:var(--text-muted);">{{ c.student.roll_no }}</span>
+          </td>
+          <td>{% include 'partials/status_badge.html' %}</td>
+          <td style="font-size:12px;">
+            {% if c.assignee %}
+              {{ c.assignee.name }}
+            {% else %}
+              <span style="color:var(--danger); font-weight:600;">Unassigned</span>
+            {% endif %}
+          </td>
+          <td style="font-size:12px; color:var(--text-muted);">{{ c.created_at.strftime('%d %b %Y') }}</td>
+          <td>
+            <div style="display:flex; gap:6px;">
+              <a href="{{ url_for('admin.complaint_detail', cid=c.id) }}" class="btn btn-outline btn-xs" title="View / Manage">
+                <i class="fas fa-cog"></i>
+              </a>
+              <form method="POST" action="{{ url_for('admin.delete_complaint', cid=c.id) }}" onsubmit="return confirm('Delete complaint #{{ c.id }} permanently?');" style="display:inline;">
+                <button type="submit" class="btn btn-red btn-xs" title="Delete Complaint">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="fas fa-folder-open"></i>
+    <h3>No complaints found</h3>
+    <p>No complaints match the filter criteria.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

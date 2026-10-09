@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block avatar_bg %}linear-gradient(135deg,#f72585,#7209b7){% endblock %}
+{% block avatar_icon %}fa-user-shield{% endblock %}
+{% block user_role_label %}🛡️ Administrator – Pillai HOC Polytechnic{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section"><span class="nav-section-label">Administration</span></div>
+<a href="{{ url_for('admin.dashboard') }}"  class="nav-item active"><i class="fas fa-th-large"></i> Dashboard</a>
+<a href="{{ url_for('admin.complaints') }}" class="nav-item">
+  <i class="fas fa-clipboard-list"></i> Complaints
+  {% if stats.unassigned %}<span class="nav-badge">{{ stats.unassigned }}</span>{% endif %}
+</a>
+<a href="{{ url_for('admin.users') }}"      class="nav-item"><i class="fas fa-users"></i> User Directory</a>
+<a href="{{ url_for('admin.reports') }}"    class="nav-item"><i class="fas fa-chart-bar"></i> Analytics &amp; Reports</a>
+{% endblock %}
+
+{% block page_title %}Administrative Control Center{% endblock %}
+{% block page_subtitle %}Pillai HOC Polytechnic, Rasayani (Code: 1148) – Academic Year 2026-27{% endblock %}
+
+{% block content %}
+<!-- Stats Grid -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon blue"><i class="fas fa-clipboard-list"></i></div>
+    <div class="stat-info">
+      <div class="count">{{ stats.total }}</div>
+      <div class="label">Total Complaints</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon red"><i class="fas fa-exclamation-triangle"></i></div>
+    <div class="stat-info">
+      <div class="count">{{ stats.unassigned }}</div>
+      <div class="label">Unassigned (Action Needed)</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon orange"><i class="fas fa-spinner"></i></div>
+    <div class="stat-info">
+      <div class="count">{{ stats.inprogress }}</div>
+      <div class="label">Under Investigation</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+    <div class="stat-info">
+      <div class="count">{{ stats.resolved }}</div>
+      <div class="label">Resolved / Closed</div>
+    </div>
+  </div>
+</div>
+
+<!-- Unassigned Complaints Section -->
+<div class="card" style="border-left: 4px solid var(--danger);">
+  <div class="card-header">
+    <div>
+      <div class="card-title" style="color:var(--danger);"><i class="fas fa-bell"></i> High Priority Unassigned Complaints</div>
+      <div class="card-subtitle">New student tickets awaiting review &amp; faculty dispatch</div>
+    </div>
+    <a href="{{ url_for('admin.complaints', status='submitted') }}" class="btn btn-blue btn-sm">
+      View All Submitted
+    </a>
+  </div>
+
+  {% if unassigned %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Subject</th>
+          <th>Category</th>
+          <th>Priority</th>
+          <th>Student</th>
+          <th>Submitted Time</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in unassigned %}
+        <tr>
+          <td><strong>#{{ c.id }}</strong></td>
+          <td style="max-width:240px;">
+            <a href="{{ url_for('admin.complaint_detail', cid=c.id) }}" style="color:var(--text-dark); font-weight:600;">
+              {{ c.title }}
+            </a>
+          </td>
+          <td>{% include 'partials/category_pill.html' %}</td>
+          <td>{% include 'partials/priority_badge.html' %}</td>
+          <td style="font-size:12px;">
+            {{ c.student.name }}<br>
+            <span style="color:var(--text-muted);">{{ c.student.roll_no }}</span>
+          </td>
+          <td style="font-size:12px; color:var(--text-muted);">{{ c.created_at.strftime('%d %b %Y, %I:%M %p') }}</td>
+          <td>
+            <a href="{{ url_for('admin.complaint_detail', cid=c.id) }}" class="btn btn-blue btn-xs">
+              <i class="fas fa-user-check"></i> Assign Staff
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state" style="padding:24px;">
+    <i class="fas fa-check-double" style="color:var(--success); font-size:36px;"></i>
+    <h3 style="color:var(--success); font-size:15px; margin-top:8px;">Zero unassigned complaints!</h3>
+    <p>All tickets are actively assigned to responsible staff members.</p>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Distribution Grid -->
+<div class="grid-2">
+  <!-- Category Breakdown -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title"><i class="fas fa-pie-chart" style="color:var(--primary);"></i> Category Breakdown</div>
+        <div class="card-subtitle">Volume of issues across campus zones</div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Category</th><th>Complaints</th><th>Share</th></tr></thead>
+        <tbody>
+          {% for cat, cnt in cat_stats.items() %}
+          <tr>
+            <td>
+              {% set c = {'category': cat} %}
+              {% include 'partials/category_pill.html' %}
+            </td>
+            <td><strong>{{ cnt }}</strong></td>
+            <td>
+              {% set pct = (cnt / stats.total * 100)|round(1) if stats.total else 0 %}
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="progress-wrap" style="flex:1; height:6px;">
+                  <div class="progress-bar" style="width: {{ pct }}%;"></div>
+                </div>
+                <span style="font-size:11px; color:var(--text-muted); min-width:35px;">{{ pct }}%</span>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Administrative Policy & SLA Guidelines -->
+  <div class="card" style="background: linear-gradient(135deg, #1e293b, #0f172a); color: white; border: none;">
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+      <i class="fas fa-balance-scale" style="font-size: 26px; color: #38bdf8;"></i>
+      <div>
+        <h3 style="font-size: 15px; font-weight: 700;">Grievance Redressal Policy &amp; SLA Guidelines</h3>
+        <p style="font-size: 11px; opacity: 0.8;">Pillai HOC Polytechnic – Institutional Quality Cell</p>
+      </div>
+    </div>
+    <div style="font-size: 12px; line-height: 2; opacity: 0.9;">
+      <div>• <strong>High Priority (Safety / Sanitation):</strong> Initial action within 24 hours; mandatory escalation to Warden / HOD.</div>
+      <div>• <strong>Medium Priority (Academic / Lab):</strong> Resolution within 3 working days with student notification.</div>
+      <div>• <strong>Low Priority (General Inquiries):</strong> Administrative review &amp; closure within 7 days.</div>
+      <div>• <strong>Closure Protocol:</strong> Feedback mandatory upon resolution for continuous service improvement.</div>
+    </div>
+    <div style="margin-top: 16px;">
+      <a href="{{ url_for('admin.reports') }}" class="btn btn-sm" style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.25);">
+        <i class="fas fa-chart-line"></i> View Redressal Performance Reports
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
