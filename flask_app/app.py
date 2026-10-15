@@ -2,7 +2,7 @@
 Student Complaint & Feedback Management System
 Flask Application - Main Entry Point
 
-Institute  : Pillai HOC Polytechnic, Rasayani (Code: 1148)
+Institute  : Pillai HOC College of Engineering and Technology, Rasayani (Code: 1148)
 Course     : Software Engineering (315323), Sem 5, K-Scheme
 Guide      : Prof. Priyanka Kale
 Academic Year: 2026-27
@@ -64,7 +64,7 @@ if __name__ == '__main__':
     app = create_app()
     print("\n" + "="*55)
     print("  SCFMS - Student Complaint & Feedback Management System")
-    print("  Pillai HOC Polytechnic, Rasayani | Code: 1148")
+    print("  Pillai HOC College of Engineering and Technology, Rasayani | Code: 1148")
     print("  Guide: Prof. Priyanka Kale | AY: 2026-27")
     print("="*55)
     print("  Open in browser: http://127.0.0.1:5000")

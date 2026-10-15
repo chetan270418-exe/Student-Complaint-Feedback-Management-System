@@ -1,7 +1,7 @@
 /**
  * DATA LAYER - Student Complaint & Feedback Management System
  * Handles localStorage persistence for all application data.
- * Pillai HOC Polytechnic | STE Course 315323 | Sem 5 K-Scheme
+ * Pillai HOC College of Engineering and Technology | STE Course 315323 | Sem 5 K-Scheme
  * Team: Chetan Amit Sonawane, Gawand Shubham Naresh, Kavya Rajendra Patil
  */
 

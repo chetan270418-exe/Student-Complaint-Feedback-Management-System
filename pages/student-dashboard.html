@@ -14,7 +14,7 @@
   <div class="sidebar-logo">
     <div class="logo-circle"><i class="fas fa-university"></i></div>
     <div>
-      <h2>Pillai HOC Polytechnic</h2>
+      <h2>Pillai HOC College of Engineering and Technology</h2>
       <p>SCFMS Portal</p>
     </div>
   </div>
@@ -593,7 +593,7 @@ function renderProfile() {
   document.getElementById('profileRole').textContent = '🎓 Student – ' + (currentUser.branch || 'N/A');
   document.getElementById('profileDetails').innerHTML = `
     <div style="display:flex; flex-direction:column; gap:14px;">
-      ${[['fa-id-card','Roll No', currentUser.rollNo],['fa-envelope','Email', currentUser.email],['fa-code-branch','Branch', currentUser.branch],['fa-layer-group','Semester', currentUser.semester],['fa-university','Institute','Pillai HOC Polytechnic, Rasayani']].map(([icon,label,val]) => `
+      ${[['fa-id-card','Roll No', currentUser.rollNo],['fa-envelope','Email', currentUser.email],['fa-code-branch','Branch', currentUser.branch],['fa-layer-group','Semester', currentUser.semester],['fa-university','Institute','Pillai HOC College of Engineering and Technology, Rasayani']].map(([icon,label,val]) => `
         <div style="display:flex; align-items:center; gap:12px; padding:10px; background:#f8fafc; border-radius:10px;">
           <div style="width:32px; height:32px; border-radius:8px; background:var(--primary-light); display:flex; align-items:center; justify-content:center; color:var(--primary);"><i class="fas ${icon}"></i></div>
           <div><div style="font-size:11px; color:var(--text-muted);">${label}</div><div style="font-size:13px; font-weight:600;">${val||'N/A'}</div></div>

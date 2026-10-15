@@ -14,6 +14,10 @@ ENV/
 ~$*.doc
 *.tmp
 
+# Reports and binary documents
+*.pdf
+*.docx
+
 # Operating system
 .DS_Store
 Thumbs.db

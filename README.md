@@ -1,6 +1,6 @@
 # 🎓 Student Complaint & Feedback Management System (SCFMS)
 
-**Pillai HOC Polytechnic, Rasayani (Institute Code: 1148)**  
+**Pillai HOC College of Engineering and Technology, Rasayani (Institute Code: 1148)**  
 **Academic Year: 2026-27 | Subject: Software Engineering (315323) | Semester: 5, K-Scheme**  
 **Guide Teacher:** Prof. Priyanka Kale  
 

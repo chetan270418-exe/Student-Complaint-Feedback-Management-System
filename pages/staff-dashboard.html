@@ -13,7 +13,7 @@
 <aside class="sidebar">
   <div class="sidebar-logo">
     <div class="logo-circle"><i class="fas fa-university"></i></div>
-    <div><h2>Pillai HOC Polytechnic</h2><p>SCFMS Staff Portal</p></div>
+    <div><h2>Pillai HOC College of Engineering and Technology</h2><p>SCFMS Staff Portal</p></div>
   </div>
   <div class="sidebar-user">
     <div class="user-avatar" style="background:linear-gradient(135deg,#06d6a0,#0096c7);"><i class="fas fa-chalkboard-teacher"></i></div>
@@ -357,7 +357,7 @@ function renderProfile() {
   document.getElementById('profileDesig').textContent = currentUser.designation || 'Staff Member';
   document.getElementById('profileDetails').innerHTML = `
     <div style="display:flex;flex-direction:column;gap:12px;">
-      ${[['fa-envelope','Email',currentUser.email],['fa-building','Department',currentUser.department],['fa-id-badge','Designation',currentUser.designation],['fa-university','Institute','Pillai HOC Polytechnic, Rasayani']].map(([icon,label,val]) => `
+      ${[['fa-envelope','Email',currentUser.email],['fa-building','Department',currentUser.department],['fa-id-badge','Designation',currentUser.designation],['fa-university','Institute','Pillai HOC College of Engineering and Technology, Rasayani']].map(([icon,label,val]) => `
         <div style="display:flex;align-items:center;gap:12px;padding:10px;background:#f8fafc;border-radius:10px;">
           <div style="width:32px;height:32px;border-radius:8px;background:rgba(6,214,160,0.1);display:flex;align-items:center;justify-content:center;color:var(--success);"><i class="fas ${icon}"></i></div>
           <div><div style="font-size:11px;color:var(--text-muted);">${label}</div><div style="font-size:13px;font-weight:600;">${val||'N/A'}</div></div>

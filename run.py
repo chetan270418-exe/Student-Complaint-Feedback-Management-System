@@ -2,7 +2,7 @@
 Root launcher for Student Complaint & Feedback Management System (SCFMS)
 Flask Web Application
 
-Institute  : Pillai HOC Polytechnic, Rasayani (Code: 1148)
+Institute  : Pillai HOC College of Engineering and Technology, Rasayani (Code: 1148)
 Guide      : Prof. Priyanka Kale
 Academic Year: 2026-27
 """
@@ -22,7 +22,7 @@ app = create_app()
 if __name__ == '__main__':
     print("\n" + "=" * 65)
     print("  STUDENT COMPLAINT & FEEDBACK MANAGEMENT SYSTEM (SCFMS)")
-    print("  Pillai HOC Polytechnic, Rasayani | Code: 1148")
+    print("  Pillai HOC College of Engineering and Technology, Rasayani | Code: 1148")
     print("  Guide: Prof. Priyanka Kale | Academic Year: 2026-27")
     print("  Team: Chetan Sonawane | Gawand Shubham | Kavya Patil")
     print("=" * 65)
